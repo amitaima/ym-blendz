@@ -1,0 +1,70 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../store/AppContext';
+import GoldButton from '../../components/GoldButton';
+import { Scissors, Clock, MapPin, Sparkles } from 'lucide-react';
+
+const CustomerHome: React.FC = () => {
+  const navigate = useNavigate();
+  const { state } = useApp();
+
+  return (
+    <div className="px-6 py-8 space-y-8">
+      {/* Hero Section */}
+      <div className="relative h-64 rounded-3xl overflow-hidden gold-border-gradient group shadow-[0_0_30px_rgba(191,149,63,0.1)]">
+        <img 
+          src="https://picsum.photos/seed/barber/800/600" 
+          alt="Barbershop" 
+          className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+        <div className="absolute bottom-6 left-6 right-6">
+          <h2 className="text-3xl font-serif italic mb-1 gold-text-gradient">Precision Cuts</h2>
+          <p className="text-white/60 text-sm font-light">Crafting your unique identity since 2024</p>
+        </div>
+      </div>
+
+      {/* Info Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-2 border-gold/10 border shadow-lg">
+          <Scissors className="text-gold w-6 h-6" />
+          <span className="text-xs font-semibold text-white/80">Premium Fade</span>
+          <span className="text-lg font-bold gold-text-gradient">₪{state.settings.pricePerCut}</span>
+        </div>
+        <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-2 border-gold/10 border shadow-lg">
+          <Clock className="text-gold w-6 h-6" />
+          <span className="text-xs font-semibold text-white/80">Est. Time</span>
+          <span className="text-lg font-bold gold-text-gradient">{state.settings.slotDuration} Min</span>
+        </div>
+      </div>
+
+      <div className="glass-card p-6 rounded-2xl border-gold/5 border flex items-center space-x-4 shadow-md">
+        <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center border border-gold/20">
+          <MapPin className="text-gold w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-white">Moreshet, levona 294</h3>
+          <p className="text-xs text-white/40">Exclusive Private Studio</p>
+        </div>
+      </div>
+
+      {/* CTA - Updated to Pink and 'Secure Your Blend' */}
+      <div className="pt-4 relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-pinkAccent to-[#FF3399] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+        <GoldButton variant="pink" fullWidth onClick={() => navigate('/book')} className="relative h-16 shadow-2xl">
+          Secure Your Blend
+        </GoldButton>
+      </div>
+
+      {/* Quote */}
+      <div className="text-center py-6 px-4">
+        <p className="font-serif italic text-white/30 text-lg">
+          "A haircut is just a haircut, until you get a <span className="gold-text-gradient font-bold">Blend.</span>"
+        </p>
+        <div className="w-1 h-1 bg-pinkAccent/40 rounded-full mx-auto mt-4 animate-pulse shadow-[0_0_8px_rgba(255,0,127,0.4)]"></div>
+      </div>
+    </div>
+  );
+};
+
+export default CustomerHome;
