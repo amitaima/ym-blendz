@@ -12,7 +12,8 @@ import {
   fetchSignInMethodsForEmail,
   linkWithCredential,
   AuthCredential,
-  sendEmailVerification
+  sendEmailVerification,
+  User
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { AppState, Booking, Expense, BusinessSettings, BookingStatus, UserProfile, TimeBlock, WaitlistRequest, UserRole, SignupProfile } from '../types';
@@ -23,10 +24,11 @@ interface AppContextType {
   state: AppState;
   loading: boolean;
   authError?: string;
-  login: (email: string, pass: string) => Promise<{ success: boolean; role?: UserRole }>;
+  login: (email: string, pass: string) => Promise<{ verified: boolean }>;
   loginWithGoogle: () => Promise<void>;
   signup: (profile: SignupProfile) => Promise<void>;
   logout: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
   updateProfile: (profile: Partial<Omit<UserProfile, 'uid' | 'role'>>) => Promise<void>;
   isAdminAuthenticated: boolean;
   addBooking: (booking: Omit<Booking, 'id' | 'status' | 'createdAt' | 'customerId'>) => Promise<{ success: boolean, message: string }>;
@@ -59,21 +61,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        await firebaseUser.reload(); 
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userProfile = { uid: firebaseUser.uid, ...userDocSnap.data() } as UserProfile;
-          setState(prev => ({ ...prev, currentUser: userProfile }));
+        const userProfileData = userDocSnap.exists() ? userDocSnap.data() as Omit<UserProfile, 'uid'> : undefined;
+
+        if (firebaseUser.emailVerified || userProfileData?.role === UserRole.ADMIN) {
+          if (userProfileData) {
+            setState(prev => ({ ...prev, currentUser: {uid: firebaseUser.uid, ...userProfileData} }));
+          } else {
+            const newProfile: UserProfile = {
+                uid: firebaseUser.uid,
+                name: firebaseUser.displayName || 'New User',
+                email: firebaseUser.email!,
+                phone: firebaseUser.phoneNumber || '',
+                role: UserRole.CUSTOMER,
+            };
+            await setDoc(userDocRef, newProfile);
+            setState(prev => ({ ...prev, currentUser: newProfile }));
+          }
         } else {
-           const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            name: firebaseUser.displayName || 'New User',
-            email: firebaseUser.email!,
-            phone: firebaseUser.phoneNumber || '',
-            role: UserRole.CUSTOMER,
-          };
-          await setDoc(userDocRef, newProfile);
-          setState(prev => ({ ...prev, currentUser: newProfile }));
+            setState(prev => ({...prev, currentUser: undefined}));
         }
       } else {
         setState(prev => ({ ...prev, currentUser: undefined }));
@@ -110,43 +118,57 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return () => listeners.forEach(unsub => unsub());
   }, [state.currentUser]);
   
-  const login = async (email: string, pass: string) => {
+  const login = async (email: string, pass: string): Promise<{ verified: boolean; }> => {
     setAuthError(undefined);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-      if (pendingCredential && emailForLinking === email) {
-        await linkWithCredential(userCredential.user, pendingCredential);
-        setPendingCredential(undefined);
-        setEmailForLinking(undefined);
-      }
-      const docSnap = await getDoc(doc(db, "users", userCredential.user.uid));
-      return { success: docSnap.exists(), role: docSnap.exists() ? (docSnap.data() as UserProfile).role : undefined };
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        const user = userCredential.user;
+        await user.reload();
+
+        if (pendingCredential && emailForLinking === email) {
+            await linkWithCredential(user, pendingCredential);
+            setPendingCredential(undefined);
+            setEmailForLinking(undefined);
+        }
+
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+        const profile = docSnap.exists() ? docSnap.data() as Omit<UserProfile, 'uid'> : undefined;
+        
+        if (!user.emailVerified && profile?.role !== UserRole.ADMIN) {
+            return { verified: false };
+        }
+
+        if (profile) {
+            setState(prev => ({ ...prev, currentUser: { uid: user.uid, ...profile } }));
+        } else {
+            const newProfile: UserProfile = {
+                uid: user.uid,
+                name: user.displayName || 'New User',
+                email: user.email!,
+                phone: user.phoneNumber || '',
+                role: UserRole.CUSTOMER,
+            };
+            await setDoc(userDocRef, newProfile);
+            setState(prev => ({ ...prev, currentUser: newProfile }));
+        }
+        
+        return { verified: true };
+
     } catch (error: any) {
-      console.error("Login error:", error);
-      setAuthError(error.message);
-      return { success: false };
+        console.error("Login error:", error);
+        setAuthError(error.message);
+        await signOut(auth);
+        throw error;
     }
-  };
+};
+
 
   const loginWithGoogle = async (): Promise<void> => {
     setAuthError(undefined);
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (!userDocSnap.exists()) {
-          const newProfile: UserProfile = {
-              uid: user.uid,
-              name: user.displayName || 'New User',
-              email: user.email!,
-              phone: user.phoneNumber || '',
-              role: UserRole.CUSTOMER,
-          };
-          await setDoc(userDocRef, newProfile);
-      }
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       if (error.code === 'auth/account-exists-with-different-credential') {
         const pendingCred = GoogleAuthProvider.credentialFromError(error);
@@ -159,6 +181,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       } else {
         console.error("Google Login Error:", error);
         setAuthError(error.message);
+        throw error;
       }
     }
   };
@@ -168,30 +191,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const methods = await fetchSignInMethodsForEmail(auth, profile.email);
       if (methods.length > 0) {
-        setAuthError("An account with this email already exists.");
-        throw new Error("Account exists");
+        throw new Error("An account with this email already exists.");
       }
       const cred = await createUserWithEmailAndPassword(auth, profile.email, profile.password);
       await sendEmailVerification(cred.user);
-      // const isAdmin = ['yoav.malka@gmail.com', 'amitai.malka@gmail.com'].includes(profile.email.toLowerCase());
       const newUserProfile: Omit<UserProfile, 'uid'> = {
         name: profile.name,
         email: profile.email,
         phone: profile.phone,
-        // role: isAdmin ? UserRole.ADMIN : UserRole.CUSTOMER,
         role: UserRole.CUSTOMER,
       };
       await setDoc(doc(db, "users", cred.user.uid), newUserProfile);
     } catch (error: any) {
       console.error("Signup Error:", error);
-      if (!authError) {
-        setAuthError(error.message);
-      }
+      setAuthError(error.message);
+      throw error; 
     }
   };
 
   const logout = async (): Promise<void> => {
     await signOut(auth);
+    setState(prev => ({ ...prev, currentUser: undefined }));
+  };
+
+  const resendVerificationEmail = async (): Promise<void> => {
+    const user = auth.currentUser;
+    if (user) {
+      await sendEmailVerification(user);
+    } else {
+      throw new Error("No user is currently signed in to resend verification email.");
+    }
   };
   
   const updateProfile = async (profile: Partial<Omit<UserProfile, 'uid' | 'role'>>): Promise<void> => {
@@ -248,7 +277,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      state, loading, authError, login, loginWithGoogle, signup, logout, updateProfile, isAdminAuthenticated, addBooking, updateBookingStatus, deleteBooking, addExpense, updateSettings, updateDayAvailability, addToWaitlist, getFinancialStats
+      state, loading, authError, login, loginWithGoogle, signup, logout, resendVerificationEmail, updateProfile, isAdminAuthenticated, addBooking, updateBookingStatus, deleteBooking, addExpense, updateSettings, updateDayAvailability, addToWaitlist, getFinancialStats
     }}>
       {children}
     </AppContext.Provider>

@@ -2,17 +2,19 @@
 import React, { useState } from 'react';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { Mail, Lock, User, Phone, Scissors, ChevronRight, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Phone, Scissors, ChevronRight, Eye, EyeOff, Sparkles, Send, CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthScreen: React.FC = () => {
-  const { login, signup, loginWithGoogle } = useApp();
+  const { login, signup, loginWithGoogle, resendVerificationEmail } = useApp();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
-  
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'initial' | 'sending' | 'sent'>('initial');
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,16 +29,13 @@ const AuthScreen: React.FC = () => {
     
     try {
       if (mode === 'login') {
-        const result = await login(formData.email, formData.password);
-        if (!result.success) {
-          setError('Invalid credentials. Please try again.');
+        const { verified } = await login(formData.email, formData.password);
+        if (!verified) {
+          setNeedsVerification(true);
         }
-      } else {
-        if (!formData.name || !formData.phone || !formData.email || !formData.password) {
-          setError('All fields are required.');
-          setIsLoading(false);
-          return;
-        }
+        // On successful, verified login, the app state will change and this component will unmount.
+        // No need to set loading to false here.
+      } else { // Signup mode
         await signup({
           name: formData.name,
           email: formData.email,
@@ -45,15 +44,24 @@ const AuthScreen: React.FC = () => {
         });
         setEmailVerificationSent(true);
       }
-    } catch (err) {
-      console.error("Auth error:", err);
-      setError("An unexpected error occurred.");
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
     } finally {
-      if (mode === 'login' || (mode === 'signup' && error && !emailVerificationSent)) {
-          setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   };
+
+  const handleResendVerification = async () => {
+    setResendStatus('sending');
+    setError('');
+    try {
+      await resendVerificationEmail();
+      setResendStatus('sent');
+    } catch (error) {
+      setError("Failed to resend email. Please try again in a moment.");
+      setResendStatus('initial');
+    }
+  }
 
   const handleGoogleAuth = async () => {
     setError('');
@@ -61,17 +69,28 @@ const AuthScreen: React.FC = () => {
     try {
       await loginWithGoogle();
     } catch (error: any) {
-      console.error("Google Auth Error:", error);
-      let errorMessage = "Google sign-in failed. Please try again.";
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in process was cancelled.";
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = "An account already exists with this email. Please sign in with your original method.";
-      }
-      setError(errorMessage);
+      setError(error.message || "Google sign-in failed. Please try again.");
       setIsLoading(false);
     }
   };
+
+  const resetAuthState = () => {
+    setMode('login');
+    setError('');
+    setNeedsVerification(false);
+    setEmailVerificationSent(false);
+    setResendStatus('initial');
+    setIsLoading(false);
+  };
+
+  const SecondaryButton = ({ onClick, children }: { onClick: () => void, children: React.ReactNode }) => (
+    <button
+      onClick={onClick}
+      className="w-full text-center py-3 mt-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group text-xs text-white/60 group-hover:text-white font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+    >
+      {children}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -98,134 +117,152 @@ const AuthScreen: React.FC = () => {
         </div>
 
         <div className="glass-card p-8 rounded-[2.5rem] border-gold/20 border space-y-6 shadow-2xl">
-          {emailVerificationSent ? (
-            <div className="text-center space-y-4 p-4">
-              <Mail className="mx-auto text-gold w-12 h-12 mb-4" />
-              <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verify Your Email</h2>
-              <p className="text-white/60 text-sm">
-                Success! We've sent a verification link to <strong className='text-white'>{formData.email}</strong>. Please check your inbox (and spam folder) to complete your registration.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="flex justify-center gap-8 mb-4 border-b border-white/5 pb-4">
-                <button 
-                  onClick={() => { setMode('login'); setError(''); }}
-                  className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
-                >
-                  Sign In
-                </button>
-                <button 
-                  onClick={() => { setMode('signup'); setError(''); }}
-                  className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
-                >
-                  Join Us
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={mode}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
-                    {mode === 'signup' && (
-                      <>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                          <input 
-                            type="text" 
-                            placeholder="Full Name"
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                            value={formData.name}
-                            onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                          <input 
-                            type="tel" 
-                            placeholder="Phone Number"
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                            value={formData.phone}
-                            onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                            required
-                          />
-                        </div>
-                      </>
-                    )}
-                    
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                      <input 
-                        type="email" 
-                        placeholder="Email Address"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                        value={formData.email}
-                        onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                      <input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Password"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 pr-12 focus:border-gold outline-none transition-all text-sm"
-                        value={formData.password}
-                        onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {error && (
-                  <p className="text-pinkAccent text-[10px] font-bold uppercase tracking-widest text-center animate-pulse">
-                    {error}
-                  </p>
-                )}
-
-                <div className="space-y-4 pt-2">
-                  <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
-                     {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
-                     {!isLoading && <ChevronRight size={16} />}
-                  </GoldButton>
-
-                  <div className="flex items-center gap-4 py-2">
-                    <div className="h-px flex-1 bg-white/10"></div>
-                    <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">OR</span>
-                    <div className="h-px flex-1 bg-white/10"></div>
-                  </div>
-
+          <AnimatePresence mode="wait">
+            {emailVerificationSent ? (
+              <motion.div key="verificationSent" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="text-center space-y-4 p-4">
+                <Mail className="mx-auto text-gold w-12 h-12 mb-4" />
+                <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verify Your Email</h2>
+                <p className="text-white/60 text-sm">
+                  Success! We've sent a verification link to <strong className='text-white'>{formData.email}</strong>. Please check your inbox and spam folder.
+                </p>
+                <SecondaryButton onClick={resetAuthState}><ArrowLeft size={12}/> Back to Login</SecondaryButton>
+              </motion.div>
+            ) : needsVerification ? (
+              <motion.div key="needsVerification" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="text-center space-y-4 p-4">
+                <Send className="mx-auto text-gold w-12 h-12 mb-4" />
+                <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verification Required</h2>
+                <p className="text-white/60 text-sm">
+                  Your email <strong className='text-white'>{formData.email}</strong> is not verified. Please check your inbox or request a new link.
+                </p>
+                {error && <p className="text-pinkAccent text-xs font-bold uppercase tracking-widest text-center py-2">{error}</p>}
+                <GoldButton fullWidth onClick={handleResendVerification} disabled={resendStatus === 'sending' || resendStatus === 'sent'} variant="pink">
+                  {resendStatus === 'initial' && <><Send size={16}/> Resend Link</>}
+                  {resendStatus === 'sending' && 'Sending...'}
+                  {resendStatus === 'sent' && <><CheckCircle size={16}/> Sent Successfully!</>}
+                </GoldButton>
+                <SecondaryButton onClick={resetAuthState}><ArrowLeft size={12}/> Back to Login</SecondaryButton>
+              </motion.div>
+            ) : (
+              <motion.div key="authForm" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+                <div className="flex justify-center gap-8 mb-4 border-b border-white/5 pb-4">
                   <button 
-                    type="button"
-                    onClick={handleGoogleAuth}
-                    disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => { setMode('login'); setError(''); }}
+                    className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
                   >
-                    <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
-                      {mode === 'login' ? 'Login with Google' : 'Signup with Google'}
-                    </span>
+                    Sign In
+                  </button>
+                  <button 
+                    onClick={() => { setMode('signup'); setError(''); }}
+                    className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
+                  >
+                    Join Us
                   </button>
                 </div>
-              </form>
-            </>
-          )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <AnimatePresence mode="wait">
+                    <motion.div
+                        key={mode}
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-4"
+                    >
+                        {mode === 'signup' && (
+                        <>
+                            <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                            <input 
+                                type="text" 
+                                placeholder="Full Name"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                                value={formData.name}
+                                onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                                required
+                            />
+                            </div>
+                            <div className="relative">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                            <input 
+                                type="tel" 
+                                placeholder="Phone Number"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                                value={formData.phone}
+                                onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                                required
+                            />
+                            </div>
+                        </>
+                        )}
+                        
+                        <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                        <input 
+                            type="email" 
+                            placeholder="Email Address"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                            value={formData.email}
+                            onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                            required
+                        />
+                        </div>
+                        
+                        <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                        <input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="Password"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 pr-12 focus:border-gold outline-none transition-all text-sm"
+                            value={formData.password}
+                            onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                        </div>
+                    </motion.div>
+                    </AnimatePresence>
+
+                    {error && (
+                    <p className="text-pinkAccent text-[10px] font-bold uppercase tracking-widest text-center animate-pulse">
+                        {error}
+                    </p>
+                    )}
+
+                    <div className="space-y-4 pt-2">
+                    <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
+                        {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
+                        {!isLoading && <ChevronRight size={16} />}
+                    </GoldButton>
+
+                    <div className="flex items-center gap-4 py-2">
+                        <div className="h-px flex-1 bg-white/10"></div>
+                        <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">OR</span>
+                        <div className="h-px flex-1 bg-white/10"></div>
+                    </div>
+
+                    <button 
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        disabled={isLoading}
+                        className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
+                        {mode === 'login' ? 'Login with Google' : 'Signup with Google'}
+                        </span>
+                    </button>
+                    </div>
+                </form>
+              </motion.div>
+            )}
+            </AnimatePresence>
         </div>
 
         <div className="text-center">
