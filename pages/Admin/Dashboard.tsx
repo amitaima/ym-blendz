@@ -25,7 +25,7 @@ const AdminDashboard: React.FC = () => {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-sm font-bold text-gold uppercase tracking-widest">Master Dashboard</h2>
-          <h1 className="text-3xl font-serif italic gold-text-gradient">Welcome back, YM.</h1>
+          <h1 className="text-2.5xl font-serif italic gold-text-gradient">Welcome back, YM.</h1>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gold/40 uppercase font-bold">Today's Revenue</p>

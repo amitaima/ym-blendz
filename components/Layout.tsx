@@ -10,10 +10,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAdmin = state.currentUser?.role === UserRole.ADMIN;
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white font-sans max-w-md mx-auto relative overflow-hidden">
-      {/* Premium Background Glows */}
-      <div className="absolute -top-24 -left-24 w-64 h-64 bg-gold opacity-10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute top-1/2 -right-24 w-64 h-64 bg-gold/5 opacity-5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div className="min-h-screen flex flex-col bg-black text-white font-sans mx-auto relative max-w-md lg:max-w-4xl">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-gold opacity-10 rounded-full blur-[100px]"></div>
+        <div className="absolute top-1/2 -right-24 w-64 h-64 bg-gold/5 opacity-5 rounded-full blur-[100px]"></div>
+      </div>
 
       {/* Header */}
       <header className="p-6 flex justify-between items-center z-10 sticky top-0 bg-black/80 backdrop-blur-md border-b border-white/5">
@@ -36,12 +37,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24 z-0">
+      <main className="flex-1 pb-24 z-0">
         {children}
       </main>
 
       {/* Navigation */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[360px] glass-card rounded-[3rem] px-8 py-2 flex justify-between items-center z-50 border-gold/10 border shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] glass-card rounded-[3rem] px-8 py-2 flex justify-between items-center z-50 border-gold/10 border shadow-[0_10px_40px_rgba(0,0,0,0.5)] max-w-[360px] lg:max-w-2xl">
         {isAdmin ? (
           <>
             <NavItem to="/admin" icon={<Home />} active={location.pathname === '/admin'} label="Dash" />

@@ -17,12 +17,11 @@ const CustomerProfile: React.FC = () => {
     email: state.currentUser?.email || ''
   });
   
-  // Cancellation Modal State
   const [cancelingBooking, setCancelingBooking] = useState<Booking | null>(null);
 
   const myBookings = useMemo(() => {
     if (!state.currentUser) return [];
-    return state.bookings.filter(b => b.customerPhone === state.currentUser?.phone);
+    return state.bookings.filter(b => b.customerId === state.currentUser?.uid);
   }, [state.bookings, state.currentUser]);
 
   const upcoming = myBookings
@@ -35,7 +34,7 @@ const CustomerProfile: React.FC = () => {
 
   const handleSave = () => {
     if (formData.name) {
-      updateProfile({ ...formData, phone: state.currentUser?.phone || '', email: state.currentUser?.email || '' });
+      updateProfile(formData);
       setIsEditing(false);
     }
   };
@@ -85,17 +84,27 @@ const CustomerProfile: React.FC = () => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-gold/60 font-bold ml-1">Phone Number</label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-5 h-5" />
+                <input 
+                  type="tel" 
+                  placeholder="+1 234 567 890"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 pl-12 focus:border-gold outline-none transition-colors text-white"
+                  value={formData.phone}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                />
+              </div>
+            </div>
+
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-white/20 uppercase font-bold tracking-widest">Email</span>
                 <span className="text-white/60 font-mono">{state.currentUser?.email}</span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-white/20 uppercase font-bold tracking-widest">Phone</span>
-                <span className="text-white/60 font-mono">{state.currentUser?.phone}</span>
-              </div>
               <div className="pt-2">
-                 <p className="text-[8px] text-white/20 italic leading-tight text-center">Contact support to change email or phone number associated with your membership.</p>
+                 <p className="text-[8px] text-white/20 italic leading-tight text-center">Contact support to change email associated with your membership.</p>
               </div>
             </div>
           </div>
@@ -118,7 +127,6 @@ const CustomerProfile: React.FC = () => {
 
   return (
     <div className="p-6 space-y-8 pb-32 relative">
-      {/* Cancellation Modal Overlay */}
       {cancelingBooking && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="glass-card w-full max-w-sm rounded-[2.5rem] p-8 border-gold/20 border space-y-6 text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
@@ -161,7 +169,6 @@ const CustomerProfile: React.FC = () => {
         </div>
       )}
 
-      {/* Identity Card */}
       <div className="glass-card p-6 rounded-[2rem] border-gold/20 border relative overflow-hidden group shadow-[0_0_30px_rgba(191,149,63,0.05)]">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
         <div className="flex justify-between items-start mb-6">
@@ -185,7 +192,6 @@ const CustomerProfile: React.FC = () => {
         </div>
       </div>
 
-      {/* Upcoming Section */}
       <div className="space-y-4">
         <h3 className="font-serif italic text-xl flex items-center gap-2 gold-text-gradient">
           My Blendz
@@ -213,10 +219,19 @@ const CustomerProfile: React.FC = () => {
                     <XCircle size={20} />
                   </button>
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
-                  <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Studio Location: Moreshet</span>
-                  <span className="text-xs font-bold text-gold">₪{state.settings.pricePerCut}</span>
-                </div>
+                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
+    <GoldButton 
+        variant="pink" 
+        onClick={() => window.open('https://www.bitpay.co.il/app/me/DA03B6AD-44C0-6B8E-A1DC-5D8BDA26C03A5431', '_blank')} 
+        className="px-6 text-xs flex items-center h-10"
+    >
+        Pay with Bit
+    </GoldButton>
+    <div className="text-right">
+        <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Price</span>
+        <span className="text-sm font-bold text-gold block">₪{state.settings.pricePerCut}</span>
+    </div>
+</div>
               </div>
             ))}
           </div>
@@ -230,7 +245,6 @@ const CustomerProfile: React.FC = () => {
         )}
       </div>
 
-      {/* History Section */}
       <div className="space-y-4">
         <h3 className="font-serif italic text-xl gold-text-gradient">Past Sessions</h3>
         {history.length > 0 ? (
@@ -255,7 +269,6 @@ const CustomerProfile: React.FC = () => {
         )}
       </div>
 
-      {/* Cancellation Policy Note */}
       <div className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-start space-x-3">
         <Info className="text-gold w-4 h-4 mt-0.5 shrink-0" />
         <p className="text-[10px] text-white/40 leading-relaxed">

@@ -3,12 +3,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { ChevronLeft, ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Mail } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Mail, Info } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter } from 'date-fns';
 
 const BookingFlow: React.FC = () => {
   const navigate = useNavigate();
-  // Fixed: state.currentUser is used instead of state.userProfile; updateProfile is now available in context
   const { state, addBooking, updateProfile, addToWaitlist } = useApp();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday());
@@ -19,9 +18,9 @@ const BookingFlow: React.FC = () => {
     email: state.currentUser?.email || ''
   });
   const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'pending' | 'success'>('idle');
+  const [isBooking, setIsBooking] = useState(false);
 
   useEffect(() => {
-    // Fixed: state.currentUser is used instead of state.userProfile
     if (state.currentUser) {
       setCustomerInfo({
         name: state.currentUser.name,
@@ -65,19 +64,27 @@ const BookingFlow: React.FC = () => {
     return Array.from(new Set(slots)).sort();
   }, [selectedDate, state.settings, state.bookings]);
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!selectedSlot || !selectedDate) return;
-    // Fixed: state.currentUser is used instead of state.userProfile
-    if (!state.currentUser) {
-      updateProfile({ name: customerInfo.name, phone: customerInfo.phone, email: customerInfo.email });
+    setIsBooking(true);
+    try {
+      const result = await addBooking({
+        customerName: customerInfo.name,
+        customerPhone: customerInfo.phone,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        timeSlot: selectedSlot
+      });
+
+      if (result.success) {
+        setStep(4);
+      } else {
+        alert(`Booking failed: ${result.message}`);
+      }
+    } catch (error) {
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsBooking(false);
     }
-    addBooking({
-      customerName: customerInfo.name,
-      customerPhone: customerInfo.phone,
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      timeSlot: selectedSlot
-    });
-    setStep(4);
   };
 
   const handleWaitlist = () => {
@@ -149,7 +156,6 @@ const BookingFlow: React.FC = () => {
 
   return (
     <div className="p-6 space-y-4 animate-in fade-in duration-500 pb-32">
-      {/* Pink indicator for steps */}
       <div className="flex items-center space-x-2">
         {[1, 2, 3].map(i => (
           <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-pinkAccent shadow-[0_0_15px_rgba(255,0,127,0.4)]' : 'bg-white/10'}`} />
@@ -279,45 +285,14 @@ const BookingFlow: React.FC = () => {
         <div className="space-y-6 animate-in slide-in-from-right-8 duration-500">
           <div className="flex items-center space-x-4">
             <button onClick={() => setStep(2)} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronLeft size={20} /></button>
-            <h2 className="text-2xl font-serif italic gold-text-gradient">Personalization</h2>
+            <h2 className="text-2xl font-serif italic gold-text-gradient">Confirm Booking</h2>
           </div>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-gold/60 font-bold ml-1">Guest Name</label>
-              <input 
-                type="text" 
-                placeholder="How should we call you?"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-gold outline-none transition-all text-sm text-white"
-                value={customerInfo.name}
-                onChange={e => setCustomerInfo(p => ({ ...p, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-gold/60 font-bold ml-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                <input 
-                  type="email" 
-                  placeholder="your@email.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm text-white"
-                  value={customerInfo.email}
-                  onChange={e => setCustomerInfo(p => ({ ...p, email: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-gold/60 font-bold ml-1">Phone Number</label>
-              <input 
-                type="tel" 
-                placeholder="For booking confirmation"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-gold outline-none transition-all text-sm text-white"
-                value={customerInfo.phone}
-                onChange={e => setCustomerInfo(p => ({ ...p, phone: e.target.value }))}
-              />
-            </div>
+          <div className="glass-card p-6 rounded-[2rem] border-gold/10 border space-y-3">
+            <p className="text-sm text-white/80"><span className="font-bold text-gold">{customerInfo.name}</span>, please confirm your booking for <span className="font-bold text-gold">{selectedSlot}</span>.</p>
+            <p className="text-xs text-white/50">A confirmation will be sent to {customerInfo.email} and {customerInfo.phone}.</p>
           </div>
-
+          
           <div className="glass-card p-6 rounded-[2.5rem] space-y-4 border-gold/10 border relative overflow-hidden shadow-2xl">
              <div className="absolute top-0 right-0 p-6 opacity-5">
                 <Clock size={64} className="text-gold" />
@@ -340,14 +315,21 @@ const BookingFlow: React.FC = () => {
             </div>
           </div>
 
+          <div className="flex items-start gap-3 p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-300">
+            <Info size={32} className="shrink-0 mt-0.5" />
+            <p className="text-xs leading-relaxed">
+              <span className="font-bold">Cancellation Policy:</span> Cancellations are accepted up to 24 hours before your scheduled appointment time.
+            </p>
+          </div>
+
           <GoldButton 
             fullWidth 
             variant="gold" 
-            disabled={!customerInfo.name || !customerInfo.phone || !customerInfo.email} 
+            disabled={isBooking} 
             onClick={handleComplete}
             className="h-16 shadow-gold/20"
           >
-            Confirm Reservation
+            {isBooking ? 'Confirming...' : 'Confirm Reservation'}
           </GoldButton>
         </div>
       )}

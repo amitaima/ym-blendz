@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { Scissors, Clock, MapPin, Sparkles } from 'lucide-react';
+import { Scissors, Clock, MapPin } from 'lucide-react';
 
 const CustomerHome: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const CustomerHome: React.FC = () => {
   return (
     <div className="px-6 py-8 space-y-8">
       {/* Hero Section */}
-      <div className="relative h-64 rounded-3xl overflow-hidden gold-border-gradient group shadow-[0_0_30px_rgba(191,149,63,0.1)]">
+      <div className="relative h-52 rounded-3xl overflow-hidden gold-border-gradient group shadow-[0_0_30px_rgba(191,149,63,0.1)]">
         <img 
           src="https://picsum.photos/seed/barber/800/600" 
           alt="Barbershop" 
@@ -49,9 +49,8 @@ const CustomerHome: React.FC = () => {
       </div>
 
       {/* CTA - Updated to Pink and 'Secure Your Blend' */}
-      <div className="pt-4 relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-pinkAccent to-[#FF3399] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-        <GoldButton variant="pink" fullWidth onClick={() => navigate('/book')} className="relative h-16 shadow-2xl">
+      <div className="pt-4">
+        <GoldButton variant="pink" fullWidth onClick={() => navigate('/book')} className="h-16 shadow-2xl">
           Secure Your Blend
         </GoldButton>
       </div>

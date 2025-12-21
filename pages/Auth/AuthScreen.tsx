@@ -6,10 +6,11 @@ import { Mail, Lock, User, Phone, Scissors, ChevronRight, Eye, EyeOff, Sparkles 
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthScreen: React.FC = () => {
-  const { login, signup } = useApp();
+  const { login, signup, loginWithGoogle } = useApp();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -18,38 +19,64 @@ const AuthScreen: React.FC = () => {
     phone: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
-    if (mode === 'login') {
-      const result = login(formData.email, formData.password);
-      if (!result.success) {
-        setError('Invalid credentials. Please try again.');
+    try {
+      if (mode === 'login') {
+        const result = await login(formData.email, formData.password);
+        if (!result.success) {
+          setError('Invalid credentials. Please try again.');
+        }
+      } else {
+        if (!formData.name || !formData.phone || !formData.email || !formData.password) {
+          setError('All fields are required.');
+          setIsLoading(false);
+          return;
+        }
+        await signup({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password
+        });
       }
-    } else {
-      if (!formData.name || !formData.phone || !formData.email || !formData.password) {
-        setError('All fields are required.');
-        return;
+    } catch (err) {
+      console.error("Auth error:", err);
+      setError("An unexpected error occurred.");
+    } finally {
+      // This will be reached on login failure. On success, the user is navigated away.
+      if (mode === 'login' || (mode === 'signup' && error)) {
+          setIsLoading(false);
       }
-      signup({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password
-      });
     }
   };
 
-  const handleGoogleAuth = () => {
-    // Mock Google Auth logic
-    console.log("Mock Google Auth triggered");
-    // In a real app, this would redirect to Google OAuth
+  const handleGoogleAuth = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      await loginWithGoogle();
+      // On success, the onAuthStateChanged listener in AppContext will handle navigation.
+    } catch (error: any) {
+      console.error("Google Auth Error:", error);
+      // Map Firebase auth errors to user-friendly messages
+      let errorMessage = "Google sign-in failed. Please try again.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in process was cancelled.";
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = "An account already exists with this email. Please sign in with your original method.";
+      }
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+    // No need to set isLoading to false on success, as the page will redirect.
   };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-gold opacity-10 rounded-full blur-[120px]"></div>
         <div className="absolute top-1/2 -right-24 w-80 h-80 bg-pinkAccent opacity-5 rounded-full blur-[100px]"></div>
@@ -165,8 +192,9 @@ const AuthScreen: React.FC = () => {
             )}
 
             <div className="space-y-4 pt-2">
-              <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'}>
-                {mode === 'login' ? 'Sign In' : 'Create Account'} <ChevronRight size={16} />
+              <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
+                 {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
+                 {!isLoading && <ChevronRight size={16} />}
               </GoldButton>
 
               <div className="flex items-center gap-4 py-2">
@@ -178,7 +206,8 @@ const AuthScreen: React.FC = () => {
               <button 
                 type="button"
                 onClick={handleGoogleAuth}
-                className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">

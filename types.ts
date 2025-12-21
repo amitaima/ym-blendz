@@ -11,6 +11,7 @@ export enum UserRole {
 
 export interface Booking {
   id: string;
+  customerId: string; // Add this line
   customerName: string;
   customerPhone: string;
   date: string; // ISO format YYYY-MM-DD
@@ -48,13 +49,14 @@ export interface BusinessSettings {
 }
 
 export interface UserProfile {
-  id: string;
+  uid: string;
   name: string;
   phone: string;
   email: string;
   role: UserRole;
-  password?: string; // Mock password
 }
+
+export type SignupProfile = Omit<UserProfile, 'uid' | 'role'> & { password: string };
 
 export interface AppState {
   bookings: Booking[];
