@@ -3,14 +3,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { ChevronLeft, ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Mail, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Mail, Info, AlertCircle } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter } from 'date-fns';
 
 const BookingFlow: React.FC = () => {
   const navigate = useNavigate();
   const { state, addBooking, updateProfile, addToWaitlist } = useApp();
   const [step, setStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [customerInfo, setCustomerInfo] = useState({ 
     name: state.currentUser?.name || '', 
@@ -19,6 +19,8 @@ const BookingFlow: React.FC = () => {
   });
   const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [isBooking, setIsBooking] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (state.currentUser) {
@@ -78,10 +80,10 @@ const BookingFlow: React.FC = () => {
       if (result.success) {
         setStep(4);
       } else {
-        alert(`Booking failed: ${result.message}`);
+        setBookingError(result.message || 'This slot was just taken. Please select another.');
       }
     } catch (error) {
-      alert('An unexpected error occurred. Please try again.');
+      setBookingError('An unexpected error occurred. Please try again.');
     } finally {
       setIsBooking(false);
     }
@@ -117,7 +119,13 @@ const BookingFlow: React.FC = () => {
       setSelectedDate(null);
     } else {
       setSelectedDate(date);
+      setStep(2);
     }
+  };
+  
+  const handleSlotSelection = (slot: string) => {
+    setSelectedSlot(slot);
+    setStep(3);
   };
 
   if (step === 4) {
@@ -132,7 +140,7 @@ const BookingFlow: React.FC = () => {
         <div className="w-full glass-card p-6 rounded-2xl border-gold/10 border space-y-4 shadow-2xl relative overflow-hidden">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold-light">Settlement</p>
           <a 
-            href="https://bitpay.me/ymblendz" 
+            href="https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F" 
             target="_blank" 
             rel="noreferrer"
             className="block py-4 rounded-xl bg-pinkAccent text-white font-bold text-center shadow-lg shadow-pink-900/40 active:scale-95 transition-all relative z-10"
@@ -156,6 +164,32 @@ const BookingFlow: React.FC = () => {
 
   return (
     <div className="p-6 space-y-4 animate-in fade-in duration-500 pb-32">
+      {bookingError && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in">
+          <div className="glass-card p-8 rounded-[2rem] border-red-500/30 border text-center space-y-6 shadow-2xl shadow-red-900/40 max-w-sm">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20">
+              <AlertCircle className="text-red-500 w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-serif italic text-white">Booking Failed</h2>
+              <p className="text-white/60 text-sm px-4">{bookingError}</p>
+            </div>
+            <GoldButton
+              fullWidth
+              variant="outline"
+              className="!text-red-400 !border-red-400/50"
+              onClick={() => {
+                setBookingError(null);
+                setSelectedSlot(null);
+                setStep(2);
+              }}
+            >
+              Choose Another Time
+            </GoldButton>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center space-x-2">
         {[1, 2, 3].map(i => (
           <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-pinkAccent shadow-[0_0_15px_rgba(255,0,127,0.4)]' : 'bg-white/10'}`} />
@@ -183,7 +217,7 @@ const BookingFlow: React.FC = () => {
                 <button
                   key={i}
                   onClick={() => toggleDate(date)}
-                  className={`flex flex-col items-center justify-center py-2.5 rounded-[1.25rem] border transition-all duration-300 relative overflow-hidden
+                  className={`flex flex-col items-center justify-center py-4 rounded-[1.25rem] border transition-all duration-300 relative overflow-hidden
                     ${isSelected ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105 z-10' : 'glass-card border-white/5 text-white/60'}
                     ${isOpen && !isSelected ? 'border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : ''}
                     ${!isOpen ? 'opacity-30' : 'hover:border-gold/30'}`}
@@ -199,7 +233,7 @@ const BookingFlow: React.FC = () => {
             })}
           </div>
 
-          {selectedDate && (
+          {/* {selectedDate && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
               <GoldButton 
                 fullWidth 
@@ -210,14 +244,17 @@ const BookingFlow: React.FC = () => {
                 {isSelectedDateOpen ? 'View Available Slots' : 'Notify me for this day'}
               </GoldButton>
             </div>
-          )}
+          )} */}
         </div>
       )}
 
       {step === 2 && selectedDate && (
         <div className="space-y-6 animate-in slide-in-from-right-8 duration-500">
           <div className="flex items-center space-x-4">
-            <button onClick={() => setStep(1)} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronLeft size={20} /></button>
+            <button onClick={() => {
+              setSelectedDate(null);
+              setStep(1);
+              }} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronLeft size={20} /></button>
             <h2 className="text-2xl font-serif italic gold-text-gradient">Time Selection</h2>
           </div>
           
@@ -237,7 +274,7 @@ const BookingFlow: React.FC = () => {
             {timeSlots.length > 0 ? timeSlots.map(slot => (
               <button
                 key={slot}
-                onClick={() => setSelectedSlot(slot)}
+                onClick={() => handleSlotSelection(slot)}
                 className={`py-4 rounded-2xl border text-sm font-bold transition-all duration-300
                   ${selectedSlot === slot ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105' : 'glass-card border-white/5 text-white/60 hover:border-gold/30'}`}
               >
@@ -273,18 +310,21 @@ const BookingFlow: React.FC = () => {
               </div>
             )}
           </div>
-          {timeSlots.length > 0 && (
+          {/* {timeSlots.length > 0 && (
             <GoldButton fullWidth variant="gold" disabled={!selectedSlot} onClick={() => setStep(3)} className="h-14">
               Continue to Details
             </GoldButton>
-          )}
+          )} */}
         </div>
       )}
 
       {step === 3 && selectedDate && (
         <div className="space-y-6 animate-in slide-in-from-right-8 duration-500">
           <div className="flex items-center space-x-4">
-            <button onClick={() => setStep(2)} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronLeft size={20} /></button>
+            <button onClick={() => {
+              setSelectedSlot(null);
+              setStep(2);
+              }} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronLeft size={20} /></button>
             <h2 className="text-2xl font-serif italic gold-text-gradient">Confirm Booking</h2>
           </div>
           

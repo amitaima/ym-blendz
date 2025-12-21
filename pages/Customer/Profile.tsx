@@ -222,7 +222,7 @@ const CustomerProfile: React.FC = () => {
                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
     <GoldButton 
         variant="pink" 
-        onClick={() => window.open('https://www.bitpay.co.il/app/me/DA03B6AD-44C0-6B8E-A1DC-5D8BDA26C03A5431', '_blank')} 
+        onClick={() => window.open('https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F', '_blank')} 
         className="px-6 text-xs flex items-center h-10"
     >
         Pay with Bit

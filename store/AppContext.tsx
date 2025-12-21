@@ -107,14 +107,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }));
 
+    // Always listen to all bookings for real-time availability for all users
+    listeners.push(onSnapshot(collection(db, "bookings"), s => 
+        setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))
+    ));
+
     if (state.currentUser.role === UserRole.ADMIN) {
-      listeners.push(onSnapshot(collection(db, "bookings"), s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
+      // Admin-specific listeners
       listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
       listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
-    } else {
-      const q = query(collection(db, "bookings"), where("customerId", "==", state.currentUser.uid));
-      listeners.push(onSnapshot(q, s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
-    }
+    } 
+
+    // if (state.currentUser.role === UserRole.ADMIN) {
+    //   listeners.push(onSnapshot(collection(db, "bookings"), s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
+    //   listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
+    //   listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
+    // } else {
+    //   const q = query(collection(db, "bookings"), where("customerId", "==", state.currentUser.uid));
+    //   listeners.push(onSnapshot(q, s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
+    // }
+    // The 'else' block that previously filtered bookings for customers has been removed.
+
     return () => listeners.forEach(unsub => unsub());
   }, [state.currentUser]);
   
