@@ -11,6 +11,7 @@ const AuthScreen: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -42,13 +43,13 @@ const AuthScreen: React.FC = () => {
           phone: formData.phone,
           password: formData.password
         });
+        setEmailVerificationSent(true);
       }
     } catch (err) {
       console.error("Auth error:", err);
       setError("An unexpected error occurred.");
     } finally {
-      // This will be reached on login failure. On success, the user is navigated away.
-      if (mode === 'login' || (mode === 'signup' && error)) {
+      if (mode === 'login' || (mode === 'signup' && error && !emailVerificationSent)) {
           setIsLoading(false);
       }
     }
@@ -59,10 +60,8 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     try {
       await loginWithGoogle();
-      // On success, the onAuthStateChanged listener in AppContext will handle navigation.
     } catch (error: any) {
       console.error("Google Auth Error:", error);
-      // Map Firebase auth errors to user-friendly messages
       let errorMessage = "Google sign-in failed. Please try again.";
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in process was cancelled.";
@@ -72,7 +71,6 @@ const AuthScreen: React.FC = () => {
       setError(errorMessage);
       setIsLoading(false);
     }
-    // No need to set isLoading to false on success, as the page will redirect.
   };
 
   return (
@@ -88,7 +86,7 @@ const AuthScreen: React.FC = () => {
         className="w-full max-w-sm z-10 space-y-8"
       >
         <div className="text-center space-y-2">
-          <div className="flex justify-center mb-4">
+           <div className="flex justify-center mb-4">
             <div className="w-20 h-20 rounded-full glass-card border-gold/30 border flex items-center justify-center shadow-[0_0_30px_rgba(191,149,63,0.1)]">
               <Scissors className="text-gold w-10 h-10 -rotate-90" />
             </div>
@@ -100,122 +98,134 @@ const AuthScreen: React.FC = () => {
         </div>
 
         <div className="glass-card p-8 rounded-[2.5rem] border-gold/20 border space-y-6 shadow-2xl">
-          <div className="flex justify-center gap-8 mb-4 border-b border-white/5 pb-4">
-            <button 
-              onClick={() => { setMode('login'); setError(''); }}
-              className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
-            >
-              Sign In
-            </button>
-            <button 
-              onClick={() => { setMode('signup'); setError(''); }}
-              className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
-            >
-              Join Us
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={mode}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-4"
-              >
-                {mode === 'signup' && (
-                  <>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                      <input 
-                        type="text" 
-                        placeholder="Full Name"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                        value={formData.name}
-                        onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                      <input 
-                        type="tel" 
-                        placeholder="Phone Number"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                        value={formData.phone}
-                        onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-                
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                  <input 
-                    type="email" 
-                    placeholder="Email Address"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
-                    value={formData.email}
-                    onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="Password"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 pr-12 focus:border-gold outline-none transition-all text-sm"
-                    value={formData.password}
-                    onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {error && (
-              <p className="text-pinkAccent text-[10px] font-bold uppercase tracking-widest text-center animate-pulse">
-                {error}
+          {emailVerificationSent ? (
+            <div className="text-center space-y-4 p-4">
+              <Mail className="mx-auto text-gold w-12 h-12 mb-4" />
+              <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verify Your Email</h2>
+              <p className="text-white/60 text-sm">
+                Success! We've sent a verification link to <strong className='text-white'>{formData.email}</strong>. Please check your inbox (and spam folder) to complete your registration.
               </p>
-            )}
-
-            <div className="space-y-4 pt-2">
-              <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
-                 {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
-                 {!isLoading && <ChevronRight size={16} />}
-              </GoldButton>
-
-              <div className="flex items-center gap-4 py-2">
-                <div className="h-px flex-1 bg-white/10"></div>
-                <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">OR</span>
-                <div className="h-px flex-1 bg-white/10"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-center gap-8 mb-4 border-b border-white/5 pb-4">
+                <button 
+                  onClick={() => { setMode('login'); setError(''); }}
+                  className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => { setMode('signup'); setError(''); }}
+                  className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
+                >
+                  Join Us
+                </button>
               </div>
 
-              <button 
-                type="button"
-                onClick={handleGoogleAuth}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
-                <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
-                  {mode === 'login' ? 'Login with Google' : 'Signup with Google'}
-                </span>
-              </button>
-            </div>
-          </form>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mode}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {mode === 'signup' && (
+                      <>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                          <input 
+                            type="text" 
+                            placeholder="Full Name"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                            value={formData.name}
+                            onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                          <input 
+                            type="tel" 
+                            placeholder="Phone Number"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                            value={formData.phone}
+                            onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                            required
+                          />
+                        </div>
+                      </>
+                    )}
+                    
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                      <input 
+                        type="email" 
+                        placeholder="Email Address"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                        value={formData.email}
+                        onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Password"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 pr-12 focus:border-gold outline-none transition-all text-sm"
+                        value={formData.password}
+                        onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {error && (
+                  <p className="text-pinkAccent text-[10px] font-bold uppercase tracking-widest text-center animate-pulse">
+                    {error}
+                  </p>
+                )}
+
+                <div className="space-y-4 pt-2">
+                  <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
+                     {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
+                     {!isLoading && <ChevronRight size={16} />}
+                  </GoldButton>
+
+                  <div className="flex items-center gap-4 py-2">
+                    <div className="h-px flex-1 bg-white/10"></div>
+                    <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">OR</span>
+                    <div className="h-px flex-1 bg-white/10"></div>
+                  </div>
+
+                  <button 
+                    type="button"
+                    onClick={handleGoogleAuth}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
+                      {mode === 'login' ? 'Login with Google' : 'Signup with Google'}
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
 
         <div className="text-center">

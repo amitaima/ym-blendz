@@ -11,7 +11,8 @@ import {
   Unsubscribe,
   fetchSignInMethodsForEmail,
   linkWithCredential,
-  AuthCredential
+  AuthCredential,
+  sendEmailVerification
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { AppState, Booking, Expense, BusinessSettings, BookingStatus, UserProfile, TimeBlock, WaitlistRequest, UserRole, SignupProfile } from '../types';
@@ -171,6 +172,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw new Error("Account exists");
       }
       const cred = await createUserWithEmailAndPassword(auth, profile.email, profile.password);
+      await sendEmailVerification(cred.user);
       // const isAdmin = ['yoav.malka@gmail.com', 'amitai.malka@gmail.com'].includes(profile.email.toLowerCase());
       const newUserProfile: Omit<UserProfile, 'uid'> = {
         name: profile.name,
