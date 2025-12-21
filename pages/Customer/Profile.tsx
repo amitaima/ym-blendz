@@ -6,7 +6,7 @@ import GoldButton from '../../components/GoldButton';
 import { User, Phone, Calendar, Clock, ChevronLeft, XCircle, CheckCircle, Info, ShieldAlert, AlertTriangle, Mail, ArrowLeft, ChevronDown } from 'lucide-react';
 import { format, isAfter, subHours, parseISO } from 'date-fns';
 import { BookingStatus, Booking } from '../../types';
-import { generateICS, downloadICS } from '../../utils/calendar';
+import { generateGoogleCalendarLink } from '../../utils/calendar';
 
 const CustomerProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -42,8 +42,8 @@ const CustomerProfile: React.FC = () => {
   };
 
   const handleAddToCalendar = (booking: Booking) => {
-    const icsContent = generateICS(booking, state.settings);
-    downloadICS(icsContent, `appointment-${booking.date}`);
+    const googleLink = generateGoogleCalendarLink(booking, state.settings);
+    window.open(googleLink, '_blank');
   };
 
   const executeCancel = () => {
