@@ -3,12 +3,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { ChevronLeft, ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Mail, Info, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Info, AlertCircle } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter } from 'date-fns';
+import { generateICS, downloadICS } from '../../utils/calendar';
+import { Booking } from '../../types';
 
 const BookingFlow: React.FC = () => {
   const navigate = useNavigate();
-  const { state, addBooking, updateProfile, addToWaitlist } = useApp();
+  const { state, addBooking, addToWaitlist } = useApp();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -20,6 +22,18 @@ const BookingFlow: React.FC = () => {
   const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'pending' | 'success'>('idle');
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+
+  const recentBooking = useMemo(() => {
+    if (step !== 4 || !state.currentUser) return null;
+    
+    // Find the booking that just got created
+    const matchingBooking = state.bookings.find(b => 
+        b.customerId === state.currentUser!.uid &&
+        b.date === format(selectedDate!, 'yyyy-MM-dd') &&
+        b.timeSlot === selectedSlot
+    );
+    return matchingBooking;
+  }, [step, state.bookings, state.currentUser, selectedDate, selectedSlot]);
 
 
   useEffect(() => {
@@ -88,6 +102,12 @@ const BookingFlow: React.FC = () => {
       setIsBooking(false);
     }
   };
+  
+  const handleAddToCalendar = () => {
+    if (!recentBooking) return;
+    const icsContent = generateICS(recentBooking, state.settings);
+    downloadICS(icsContent, `appointment-${recentBooking.date}`);
+  };
 
   const handleWaitlist = () => {
     if (!selectedDate) return;
@@ -106,13 +126,6 @@ const BookingFlow: React.FC = () => {
       setWaitlistStatus('success');
     }, 800);
   };
-
-  const isSelectedDateOpen = useMemo(() => {
-    if (!selectedDate) return false;
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    const blocks = state.settings.customAvailability?.[dateStr] || [];
-    return blocks.length > 0;
-  }, [selectedDate, state.settings]);
 
   const toggleDate = (date: Date) => {
     if (selectedDate && isSameDay(date, selectedDate)) {
@@ -138,7 +151,11 @@ const BookingFlow: React.FC = () => {
         <p className="text-white/60 text-sm">Your chair is ready for {customerInfo.name} at {selectedSlot} on {selectedDate ? format(selectedDate, 'MMM do') : ''}.</p>
         
         <div className="w-full glass-card p-6 rounded-2xl border-gold/10 border space-y-4 shadow-2xl relative overflow-hidden">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gold-light">Settlement</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold-light">Actions</p>
+          <GoldButton fullWidth variant='outline' onClick={handleAddToCalendar} className="gap-5">
+            <CalendarIcon size={16} />
+            Add to Calendar
+          </GoldButton>
           <a 
             href="https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F" 
             target="_blank" 
@@ -147,12 +164,11 @@ const BookingFlow: React.FC = () => {
           >
             Pay with BIT
           </a>
-          <p className="text-[10px] text-white/30 italic relative z-10">Total: {state.settings.pricePerCut} NIS (Due at salon)</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 w-full">
-          <GoldButton variant="outline" onClick={() => navigate('/my-appointments')}>
-            Profile
+          <GoldButton variant="outline" onClick={() => navigate('/profile')}>
+            My Cuts
           </GoldButton>
           <GoldButton variant="gold" onClick={() => navigate('/')}>
             Home
@@ -164,7 +180,7 @@ const BookingFlow: React.FC = () => {
 
   return (
     <div className="p-6 space-y-4 animate-in fade-in duration-500 pb-32">
-      {bookingError && (
+       {bookingError && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in">
           <div className="glass-card p-8 rounded-[2rem] border-red-500/30 border text-center space-y-6 shadow-2xl shadow-red-900/40 max-w-sm">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20">
@@ -232,19 +248,6 @@ const BookingFlow: React.FC = () => {
               );
             })}
           </div>
-
-          {/* {selectedDate && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <GoldButton 
-                fullWidth 
-                onClick={() => setStep(2)}
-                variant={isSelectedDateOpen ? 'gold' : 'outline'}
-                className="h-14"
-              >
-                {isSelectedDateOpen ? 'View Available Slots' : 'Notify me for this day'}
-              </GoldButton>
-            </div>
-          )} */}
         </div>
       )}
 
@@ -310,11 +313,6 @@ const BookingFlow: React.FC = () => {
               </div>
             )}
           </div>
-          {/* {timeSlots.length > 0 && (
-            <GoldButton fullWidth variant="gold" disabled={!selectedSlot} onClick={() => setStep(3)} className="h-14">
-              Continue to Details
-            </GoldButton>
-          )} */}
         </div>
       )}
 

@@ -13,7 +13,8 @@ const CustomerHome: React.FC = () => {
       {/* Hero Section */}
       <div className="relative h-52 rounded-3xl overflow-hidden gold-border-gradient group shadow-[0_0_30px_rgba(191,149,63,0.1)]">
         <img 
-          src="https://picsum.photos/seed/barber/800/600" 
+          // src="https://picsum.photos/seed/barber/800/600" 
+          src="https://images.unsplash.com/photo-1592647420148-bfcc177e2117?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D/400/300" 
           alt="Barbershop" 
           className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-110"
         />

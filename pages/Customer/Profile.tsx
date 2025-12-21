@@ -3,9 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { User, Phone, Calendar, Clock, ChevronLeft, XCircle, CheckCircle, Info, ShieldAlert, AlertTriangle, Mail, ArrowLeft } from 'lucide-react';
+import { User, Phone, Calendar, Clock, ChevronLeft, XCircle, CheckCircle, Info, ShieldAlert, AlertTriangle, Mail, ArrowLeft, ChevronDown } from 'lucide-react';
 import { format, isAfter, subHours, parseISO } from 'date-fns';
 import { BookingStatus, Booking } from '../../types';
+import { generateICS, downloadICS } from '../../utils/calendar';
 
 const CustomerProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const CustomerProfile: React.FC = () => {
   });
   
   const [cancelingBooking, setCancelingBooking] = useState<Booking | null>(null);
+  const [visibleHistoryCount, setVisibleHistoryCount] = useState(5);
 
   const myBookings = useMemo(() => {
     if (!state.currentUser) return [];
@@ -37,6 +39,11 @@ const CustomerProfile: React.FC = () => {
       updateProfile(formData);
       setIsEditing(false);
     }
+  };
+
+  const handleAddToCalendar = (booking: Booking) => {
+    const icsContent = generateICS(booking, state.settings);
+    downloadICS(icsContent, `appointment-${booking.date}`);
   };
 
   const executeCancel = () => {
@@ -170,18 +177,18 @@ const CustomerProfile: React.FC = () => {
       )}
 
       <div className="glass-card p-6 rounded-[2rem] border-gold/20 border relative overflow-hidden group shadow-[0_0_30px_rgba(191,149,63,0.05)]">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-2xl font-serif italic text-white group-hover:text-gold transition-all duration-500">
+            <h2 className="text-2xl font-serif italic text-gold transition-all duration-500">
               {state.currentUser?.name}
             </h2>
             <p className="text-xs text-white/40 font-mono tracking-tighter">{state.currentUser?.email}</p>
-            <p className="text-[10px] text-white/20 font-mono mt-1">{state.currentUser?.phone}</p>
+            <p className="text-xs text-white/20 font-mono mt-1">{state.currentUser?.phone}</p>
           </div>
           <button 
             onClick={() => setIsEditing(true)}
-            className="text-[10px] uppercase tracking-widest text-gold font-bold px-3 py-1 bg-gold/10 rounded-full border border-gold/20 hover:bg-gold/20 transition-all"
+            className="text-[10px] uppercase tracking-widest text-gold font-bold px-3 py-1 bg-gold/10 rounded-full border border-gold/20 hover:bg-gold/20 transition-all z-10"
           >
             Edit
           </button>
@@ -195,7 +202,7 @@ const CustomerProfile: React.FC = () => {
       <div className="space-y-4">
         <h3 className="font-serif italic text-xl flex items-center gap-2 gold-text-gradient">
           My Blendz
-          {upcoming.length > 0 && <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full not-italic border border-gold/10">{upcoming.length}</span>}
+          {upcoming.length > 0 && <span style={{paddingBottom: "0.35rem", paddingTop: "0"}} className="text-[16px] bg-gold/20 text-gold px-2 py-0.5 rounded-full not-italic border border-gold/10">{upcoming.length}</span>}
         </h3>
         {upcoming.length > 0 ? (
           <div className="space-y-4">
@@ -220,18 +227,27 @@ const CustomerProfile: React.FC = () => {
                   </button>
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
-    <GoldButton 
-        variant="pink" 
-        onClick={() => window.open('https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F', '_blank')} 
-        className="px-6 text-xs flex items-center h-10"
-    >
-        Pay with Bit
-    </GoldButton>
-    <div className="text-right">
-        <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Price</span>
-        <span className="text-sm font-bold text-gold block">₪{state.settings.pricePerCut}</span>
-    </div>
-</div>
+                  <div className="flex items-center gap-2">
+                    <GoldButton 
+                        variant="outline" 
+                        onClick={() => handleAddToCalendar(b)} 
+                        className="px-4 text-xs flex items-center h-10 gap-2"
+                    >
+                        <Calendar size={14}/>
+                    </GoldButton>
+                    <GoldButton 
+                        variant="pink" 
+                        onClick={() => window.open('https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F', '_blank')} 
+                        className="px-6 text-xs flex items-center h-10"
+                    >
+                        Pay with Bit
+                    </GoldButton>
+                  </div>
+                  <div className="text-right">
+                      <span className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Price</span>
+                      <span className="text-sm font-bold text-gold block">₪{state.settings.pricePerCut}</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -249,8 +265,8 @@ const CustomerProfile: React.FC = () => {
         <h3 className="font-serif italic text-xl gold-text-gradient">Past Sessions</h3>
         {history.length > 0 ? (
           <div className="space-y-2">
-            {history.map(b => (
-              <div key={b.id} className="flex items-center justify-between p-4 glass-card rounded-xl border-white/5 border opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+            {history.slice(0, visibleHistoryCount).map(b => (
+              <div key={b.id} className="flex items-center justify-between p-4 glass-card rounded-xl border-white/5 border opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 animate-in fade-in">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${b.status === BookingStatus.COMPLETED ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                     {b.status === BookingStatus.COMPLETED ? <CheckCircle size={14} /> : <XCircle size={14} />}
@@ -263,6 +279,15 @@ const CustomerProfile: React.FC = () => {
                 <span className="text-[10px] font-bold text-white/20">₪{state.settings.pricePerCut}</span>
               </div>
             ))}
+            {history.length > visibleHistoryCount && (
+                <button 
+                    onClick={() => setVisibleHistoryCount(prev => prev + 5)} 
+                    className="w-full text-center py-3 text-xs uppercase tracking-widest font-bold text-gold/60 hover:text-gold flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                    Show More
+                    <ChevronDown size={16} className="transition-transform" />
+                </button>
+            )}
           </div>
         ) : (
           <p className="text-center py-8 text-white/20 text-xs italic">Your history starts after your first cut.</p>
