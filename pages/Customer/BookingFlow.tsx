@@ -5,7 +5,7 @@ import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
 import { ChevronLeft, Check, Calendar as CalendarIcon, Clock, BellRing, X, Sparkles, Info, AlertCircle } from 'lucide-react';
 import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter } from 'date-fns';
-import { generateGoogleCalendarLink } from '../../utils/calendar';
+import { generateICS, createICSDataURI } from '../../utils/calendar';
 import { Booking } from '../../types';
 
 const BookingFlow: React.FC = () => {
@@ -105,8 +105,9 @@ const BookingFlow: React.FC = () => {
   
   const handleAddToCalendar = () => {
     if (!recentBooking) return;
-    const googleLink = generateGoogleCalendarLink(recentBooking, state.settings);
-    window.open(googleLink, '_blank');
+    const icsContent = generateICS(recentBooking, state.settings);
+    const dataUri = createICSDataURI(icsContent);
+    window.location.href = dataUri;
   };
 
   const handleWaitlist = () => {

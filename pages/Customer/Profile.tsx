@@ -6,7 +6,7 @@ import GoldButton from '../../components/GoldButton';
 import { User, Phone, Calendar, Clock, ChevronLeft, XCircle, CheckCircle, Info, ShieldAlert, AlertTriangle, Mail, ArrowLeft, ChevronDown } from 'lucide-react';
 import { format, isAfter, subHours, parseISO } from 'date-fns';
 import { BookingStatus, Booking } from '../../types';
-import { generateGoogleCalendarLink } from '../../utils/calendar';
+import { generateICS, createICSDataURI } from '../../utils/calendar';
 
 const CustomerProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -41,10 +41,35 @@ const CustomerProfile: React.FC = () => {
     }
   };
 
+  // const handleAddToCalendar = (booking: Booking) => {
+  //   const icsContent = generateICS(booking, state.settings);
+  //   const dataUri = createICSDataURI(icsContent);
+  //   window.location.href = dataUri;
+  // };
+
   const handleAddToCalendar = (booking: Booking) => {
-    const googleLink = generateGoogleCalendarLink(booking, state.settings);
-    window.open(googleLink, '_blank');
+    const icsContent = generateICS(booking, state.settings);
+  
+    const blob = new Blob([icsContent], {
+      type: 'text/calendar;charset=utf-8',
+    });
+  
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement('a');
+    link.href = url;
+  
+    // IMPORTANT:
+    // ❌ do NOT set link.download
+    // ❌ do NOT use window.location.href
+  
+    document.body.appendChild(link);
+    link.click();
+  
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
+  
 
   const executeCancel = () => {
     if (cancelingBooking) {
