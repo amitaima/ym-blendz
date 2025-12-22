@@ -28,10 +28,10 @@ const AdminDashboard: React.FC = () => {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-sm font-bold text-gold uppercase tracking-widest">לוח בקרה ראשי</h2>
-          <h1 className="text-2.5xl font-serif font-bold italic gold-text-gradient">ברוך שובך, יואב</h1>
+          <h1 className="text-2.5xl font-serif font-bold gold-text-gradient">ברוך שובך, יואב</h1>
         </div>
         <div className="text-left">
-          <p className="text-[10px] text-gold/40 uppercase font-bold">הכנסות היום</p>
+          <p className="text-[14px] text-gold/40 uppercase font-bold">הכנסות היום</p>
           <p className="text-xl font-bold text-gold">₪{todayRevenue}</p>
         </div>
       </div>
@@ -47,7 +47,7 @@ const AdminDashboard: React.FC = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center flex-row-reverse">
           <span className="text-[12px] px-2 py-1 bg-gold/5 border border-gold/10 rounded-full font-bold text-gold uppercase tracking-widest">{todayBookings.length} תורים</span>
-          <h3 className="font-serif font-bold italic text-xl gold-text-gradient">התספורות להיום</h3>
+          <h3 className="font-serif font-bold text-xl gold-text-gradient">התספורות להיום</h3>
         </div>
 
         <div className="space-y-3">
@@ -59,7 +59,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-white">{booking.customerName}</h4>
-                  <p className="text-xs text-white/40">{booking.customerPhone}</p>
+                  <p className="text-sm text-white/40">{booking.customerPhone}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2 space-x-reverse">
@@ -89,15 +89,15 @@ const AdminDashboard: React.FC = () => {
 
       {/* Upcoming Section */}
       <div className="space-y-4">
-        <h3 className="font-serif font-bold italic text-xl gold-text-gradient">תספורות עתידיות</h3>
+        <h3 className="font-serif font-bold text-xl gold-text-gradient">תספורות עתידיות</h3>
         <div className="space-y-3">
           {upcomingBookings.map(b => (
             <div key={b.id} className="flex items-center justify-between p-3 border-b border-white/5">
               <div className="flex flex-col text-right">
-                <span className="text-xs font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
-                <span className="text-[10px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
+                <span className="text-sm font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
+                <span className="text-[14px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
+              <span className="text-[14px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
             </div>
           ))}
         </div>
@@ -108,7 +108,7 @@ const AdminDashboard: React.FC = () => {
 
 const StatCard = ({ label, value, color }: { label: string, value: string, color: string }) => (
   <div className="glass-card p-3 rounded-2xl border-white/5 border flex flex-col space-y-1 text-right">
-    <span className="text-[8px] uppercase tracking-widest text-gold/40 font-bold">{label}</span>
+    <span className="text-[12px] uppercase tracking-widest text-gold/40 font-bold">{label}</span>
     <span className={`text-lg font-bold ${color}`}>{value}</span>
   </div>
 );

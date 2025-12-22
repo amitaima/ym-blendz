@@ -147,8 +147,8 @@ const BookingFlow: React.FC = () => {
         <div className="w-24 h-24 rounded-full bg-gold/10 border-2 border-gold flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(191,149,63,0.2)]">
           <Check className="w-12 h-12 text-gold" strokeWidth={3} />
         </div>
-        <h2 className="text-3xl font-serif font-bold italic text-white gold-text-gradient">התור נקבע בהצלחה!</h2>
-        <p className="text-white/60 text-sm">הכיסא מוכן עבור {customerInfo.name} בשעה {selectedSlot} בתאריך {selectedDate ? format(selectedDate, 'd בMMM', { locale: he }) : ''}.</p>
+        <h2 className="text-3xl font-serif font-bold text-white gold-text-gradient">התור נקבע בהצלחה!</h2>
+        <p className="text-white/60 text-base">הכיסא מוכן עבורך בשעה {selectedSlot} בתאריך {selectedDate ? format(selectedDate, 'd בMMM', { locale: he }) : ''}.</p>
         
         <div className="w-full glass-card p-6 rounded-2xl border-gold/10 border space-y-4 shadow-2xl relative overflow-hidden">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold-light">פעולות</p>
@@ -168,7 +168,7 @@ const BookingFlow: React.FC = () => {
 
         <div className="grid grid-cols-2 gap-3 w-full">
           <GoldButton variant="outline" onClick={() => navigate('/profile')}>
-            התורים שלי
+            פרופיל
           </GoldButton>
           <GoldButton variant="gold" onClick={() => navigate('/')}>
             דף הבית
@@ -187,7 +187,7 @@ const BookingFlow: React.FC = () => {
               <AlertCircle className="text-red-500 w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-serif font-bold italic text-white">ההזמנה נכשלה</h2>
+              <h2 className="text-xl font-serif font-bold text-white">ההזמנה נכשלה</h2>
               <p className="text-white/60 text-sm px-4">{bookingError}</p>
             </div>
             <GoldButton
@@ -215,10 +215,10 @@ const BookingFlow: React.FC = () => {
       {step === 1 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-serif font-bold italic gold-text-gradient">בחירת תור</h2>
+            <h2 className="text-2xl font-serif font-bold gold-text-gradient">בחירת תור</h2>
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-green-500">
-              <Sparkles className="text-white w-3 h-3" />
-              <span className="text-[10px] uppercase font-bold text-white tracking-widest">ימים פנויים</span>
+              <Sparkles className="text-white w-3.5 h-3.5" />
+              <span className="text-[12px] uppercase font-bold text-white tracking-widest">ימים פנויים</span>
             </div>
           </div>
           
@@ -234,15 +234,15 @@ const BookingFlow: React.FC = () => {
                   key={i}
                   onClick={() => toggleDate(date)}
                   className={`flex flex-col items-center justify-center py-4 rounded-[1.25rem] border transition-all duration-300 relative overflow-hidden
-                    ${isSelected ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105 z-10' : 'glass-card text-white/60'}
+                    ${isSelected ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105 z-10' : 'glass-card text-white/80'}
                     ${isOpen && !isSelected ? 'border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : ''}
-                    ${!isOpen ? 'opacity-30' : 'hover:border-gold/30'}`}
+                    ${!isOpen ? 'opacity-50' : 'hover:border-gold/30'}`}
                 >
                   {isOpen && (
-                    <div className={`absolute top-1.5 left-1.5 w-1 h-1 rounded-full shadow-[0_0_6px_rgba(34,197,94,1)] ${isSelected ? 'bg-black' : 'bg-green-500'}`} />
+                    <div className={`absolute top-3 left-3 w-1 h-1 rounded-full shadow-[0_0_6px_rgba(34,197,94,1)] ${isSelected ? 'bg-black' : 'bg-green-500'}`} />
                   )}
-                  <span className={`text-[12px] uppercase font-bold tracking-tighter ${isSelected ? 'text-black/60' : 'text-white/30'}`}>{format(date, 'eee', { locale: he })}</span>
-                  <span className="text-xl font-bold">{format(date, 'd')}</span>
+                  <span className={`text-[16px] uppercase font-bold tracking-tighter ${isSelected ? 'text-black/60' : 'text-white/50'}`}>{format(date, 'eee', { locale: he })}</span>
+                  <span className="text-2xl font-bold">{format(date, 'd')}</span>
                   {!isOpen && <X className="absolute bottom-1 text-white/5 w-4 h-4 rotate-12" />}
                 </button>
               );
@@ -258,17 +258,17 @@ const BookingFlow: React.FC = () => {
               setSelectedDate(null);
               setStep(1);
               }} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronRight size={20} /></button>
-            <h2 className="text-2xl font-serif font-bold italic gold-text-gradient">בחירת שעה</h2>
+            <h2 className="text-2xl font-serif font-bold gold-text-gradient">בחירת שעה</h2>
           </div>
           
           <div className="glass-card p-5 rounded-[2rem] border-gold/20 border flex items-center justify-between shadow-xl">
             <div className="flex items-center space-x-3 space-x-reverse">
-              <div className="w-10 h-10 bg-gold/10 rounded-full flex items-center justify-center border border-gold/20">
+              <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center border border-gold/20">
                 <CalendarIcon size={18} className="text-gold" />
               </div>
               <div>
-                <span className="text-sm font-bold block leading-tight text-white">{format(selectedDate, 'EEEE', { locale: he })}</span>
-                <span className="text-[10px] text-gold/60 uppercase tracking-widest font-bold">{format(selectedDate, 'd בMMMM', { locale: he })}</span>
+                <span className="text-base font-bold block leading-tight text-white">{format(selectedDate, 'EEEE', { locale: he })}</span>
+                <span className="text-[14px] text-gold/60 uppercase tracking-widest font-bold">{format(selectedDate, 'd בMMMM', { locale: he })}</span>
               </div>
             </div>
           </div>
@@ -279,7 +279,7 @@ const BookingFlow: React.FC = () => {
                 key={slot}
                 onClick={() => handleSlotSelection(slot)}
                 className={`py-4 rounded-2xl border text-sm font-bold transition-all duration-300
-                  ${selectedSlot === slot ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105' : 'glass-card border-white/5 text-white/60 hover:border-gold/30'}`}
+                  ${selectedSlot === slot ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105' : 'glass-card border-white/5 text-white/80 hover:border-gold/30'}`}
               >
                 {slot}
               </button>
@@ -290,8 +290,8 @@ const BookingFlow: React.FC = () => {
                     <BellRing className="text-gold w-8 h-8 animate-pulse" />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xl font-serif font-bold italic text-gold">הכל תפוס</p>
-                    <p className="text-white/40 text-[10px] uppercase tracking-widest leading-relaxed">הצטרף לרשימת ההמתנה<br/>כדי לקבל התראה אם יתפנה תור</p>
+                    <p className="text-xl font-serif font-bold text-gold">לצערנו הכל תפוס</p>
+                    <p className="text-white/40 text-[12px] uppercase tracking-widest leading-relaxed">הצטרף לרשימת ההמתנה<br/>כדי לקבל התראה אם יתפנה תור</p>
                   </div>
                   
                   {waitlistStatus === 'success' ? (
@@ -304,10 +304,19 @@ const BookingFlow: React.FC = () => {
                       variant="gold" 
                       className="py-4"
                       onClick={handleWaitlist}
-                      disabled={waitlistStatus === 'pending'}
+                      disabled
                     >
-                      {waitlistStatus === 'pending' ? 'שולח בקשה...' : 'הודע לי (SMS)'}
+                      בהמשך...
                     </GoldButton>
+                    // <GoldButton 
+                    //   fullWidth 
+                    //   variant="gold" 
+                    //   className="py-4"
+                    //   onClick={handleWaitlist}
+                    //   disabled={waitlistStatus === 'pending'}
+                    // >
+                    //   {waitlistStatus === 'pending' ? 'שולח בקשה...' : 'הודע לי (SMS)'}
+                    // </GoldButton>
                   )}
                 </div>
               </div>
@@ -323,11 +332,11 @@ const BookingFlow: React.FC = () => {
               setSelectedSlot(null);
               setStep(2);
               }} className="p-2 glass-card rounded-xl text-gold transition-transform active:scale-90 border-gold/20"><ChevronRight size={20} /></button>
-            <h2 className="text-2xl font-serif font-bold italic gold-text-gradient">אישור הזמנה</h2>
+            <h2 className="text-2xl font-serif font-bold gold-text-gradient">אישור הזמנה</h2>
           </div>
           
           <div className="glass-card p-6 rounded-[2rem] border-gold/10 border space-y-3">
-            <p className="text-sm text-white/80"><span className="font-bold text-gold">{customerInfo.name}</span>, נא לאשר את הזמנתך לשעה <span className="font-bold text-gold">{selectedSlot}</span>.</p>
+            <p className="text-base text-white/80"><span className="font-bold text-gold">{customerInfo.name}</span>, נא לאשר את הזמנתך לשעה <span className="font-bold text-gold">{selectedSlot}</span>.</p>
             <p className="text-xs text-white/50">אישור יישלח למייל {customerInfo.email} ולנייד {customerInfo.phone}.</p>
           </div>
           
@@ -335,21 +344,21 @@ const BookingFlow: React.FC = () => {
              <div className="absolute top-0 left-0 p-6 opacity-5">
                 <Clock size={64} className="text-gold" />
              </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-sm">
               <span className="text-white/40 uppercase font-bold tracking-widest">תאריך</span>
               <span className="font-bold text-white">{format(selectedDate, 'd MMM, yyyy', { locale: he })}</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-sm">
               <span className="text-white/40 uppercase font-bold tracking-widest">שעה</span>
               <span className="font-bold text-gold">{selectedSlot}</span>
             </div>
             <div className="h-px bg-white/5" />
             <div className="flex justify-between items-end">
               <div>
-                <span className="text-[10px] text-white/40 uppercase font-bold block leading-none mb-1">מחיר סופי</span>
-                <span className="text-2xl font-bold gold-text-gradient italic">₪{state.settings.pricePerCut.toFixed(2)}</span>
+                <span className="text-[12px] text-white/40 uppercase font-bold block leading-none mb-1">מחיר סופי</span>
+                <span className="text-2xl font-bold gold-text-gradient">₪{state.settings.pricePerCut.toFixed(2)}</span>
               </div>
-              <span className="text-[10px] text-white/20 uppercase font-bold italic">תור אישי</span>
+              <span className="text-[12px] text-white/20 uppercase font-bold italic">תור אישי</span>
             </div>
           </div>
 

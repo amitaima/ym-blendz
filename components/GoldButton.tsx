@@ -6,7 +6,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const GoldButton: React.FC<ButtonProps> = ({ children, variant = 'gold', fullWidth = false, className = '', ...props }) => {
-  const baseStyles = "relative py-4 px-8 rounded-xl font-bold uppercase tracking-widest text-sm transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 overflow-hidden";
+  const baseStyles = "relative py-4 px-8 rounded-xl font-bold uppercase tracking-widest text-base transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 overflow-hidden";
   const widthStyle = fullWidth ? 'w-full' : '';
   
   const variants = {

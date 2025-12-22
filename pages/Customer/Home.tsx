@@ -28,12 +28,12 @@ const CustomerHome: React.FC = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-2 border-gold/10 border shadow-lg">
           <Scissors className="text-gold w-6 h-6" />
-          <span className="text-xs font-semibold text-white/80">מחיר תספורת</span>
+          <span className="text-base font-semibold text-white/80">מחיר תספורת</span>
           <span className="text-lg font-bold gold-text-gradient">₪{state.settings.pricePerCut}</span>
         </div>
         <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-2 border-gold/10 border shadow-lg">
           <Clock className="text-gold w-6 h-6" />
-          <span className="text-xs font-semibold text-white/80">זמן מוערך</span>
+          <span className="text-base font-semibold text-white/80">זמן מוערך</span>
           <span className="text-lg font-bold gold-text-gradient">{state.settings.slotDuration} דק'</span>
         </div>
       </div>
@@ -43,8 +43,8 @@ const CustomerHome: React.FC = () => {
           <MapPin className="text-gold w-6 h-6" />
         </div>
         <div className="text-right">
-          <h3 className="text-sm font-bold text-white">מורשת, לבנה 294</h3>
-          <p className="text-xs text-white/40">סטודיו פרטי ויוקרתי</p>
+          <h3 className="text-base font-bold text-white">מורשת, לבנה 294</h3>
+          <p className="text-base text-white/40">סטודיו פרטי ויוקרתי</p>
         </div>
       </div>
 

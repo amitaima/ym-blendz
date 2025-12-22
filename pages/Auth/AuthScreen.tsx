@@ -103,7 +103,7 @@ const AuthScreen: React.FC = () => {
   const SecondaryButton = ({ onClick, children }: { onClick: () => void, children: React.ReactNode }) => (
     <button
       onClick={onClick}
-      className="w-full text-center py-3 mt-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group text-xs text-white/60 group-hover:text-white font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+      className="w-full text-center py-3 mt-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group text-sm text-white/60 group-hover:text-white font-bold uppercase tracking-widest flex items-center justify-center gap-2"
     >
       {children}
     </button>
@@ -130,7 +130,7 @@ const AuthScreen: React.FC = () => {
           <h1 className="text-4xl font-en-serif italic font-bold gold-text-gradient tracking-tighter">
             YM BLENDZ
           </h1>
-          <p className="text-[10px] uppercase tracking-[0.4em] text-white/30 font-semibold">Grooming Excellence</p>
+          <p className="text-[12px] uppercase tracking-[0.4em] text-white/30 font-semibold">Grooming Excellence</p>
         </div>
 
         <div className="glass-card p-8 rounded-[2.5rem] border-gold/20 border space-y-6 shadow-2xl">
@@ -151,7 +151,7 @@ const AuthScreen: React.FC = () => {
                 <p className="text-white/60 text-sm">
                   האימייל <strong className='text-white'>{formData.email}</strong> אינו מאומת. יש לבדוק את תיבת הדואר הנכנס או לבקש קישור חדש.
                 </p>
-                {error && <p className="text-pinkAccent text-xs font-bold uppercase tracking-widest text-center py-2">{error}</p>}
+                {error && <p className="text-pinkAccent text-sm font-bold uppercase tracking-widest text-center py-2">{error}</p>}
                 <GoldButton fullWidth onClick={handleResendVerification} disabled={resendStatus === 'sending' || resendStatus === 'sent'} variant="pink">
                   {resendStatus === 'initial' && <><Send size={16}/> שלח קישור חדש</>}
                   {resendStatus === 'sending' && 'שולח...'}
@@ -164,13 +164,13 @@ const AuthScreen: React.FC = () => {
                 <div className="flex justify-center gap-8 mb-4 border-b border-white/5 pb-4">
                   <button 
                     onClick={() => { setMode('login'); setError(''); }}
-                    className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
+                    className={`text-sm uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
                   >
                     התחברות
                   </button>
                   <button 
                     onClick={() => { setMode('signup'); setError(''); }}
-                    className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
+                    className={`text-sm uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
                   >
                     הרשמה
                   </button>
@@ -247,7 +247,7 @@ const AuthScreen: React.FC = () => {
                     </AnimatePresence>
 
                     {error && (
-                    <p className="text-pinkAccent text-[10px] font-bold uppercase tracking-widest text-center animate-pulse">
+                    <p className="text-pinkAccent text-[12px] font-bold uppercase tracking-widest text-center animate-pulse">
                         {error}
                     </p>
                     )}
@@ -270,7 +270,7 @@ const AuthScreen: React.FC = () => {
                         disabled={isLoading}
                         className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
+                        <span className="text-[12px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
                         {mode === 'login' ? 'התחבר עם Google' : 'הירשם עם Google'}
                         </span>
                         <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
@@ -283,7 +283,7 @@ const AuthScreen: React.FC = () => {
         </div>
 
         <div className="text-center">
-          <p className="text-[10px] text-white/20 uppercase tracking-widest flex items-center justify-center gap-2">
+          <p className="text-[14px] text-white/20 uppercase tracking-widest flex items-center justify-center gap-2">
             <Sparkles size={10} className="text-gold" />
             חווית סטודיו פרטית ויוקרתית
             <Sparkles size={10} className="text-gold" />

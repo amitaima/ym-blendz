@@ -29,8 +29,8 @@ const AdminSettings: React.FC = () => {
           <SettingsIcon className="text-gold" />
         </div>
         <div>
-          <h1 className="text-2xl font-serif font-bold italic gold-text-gradient leading-tight">הגדרות עסק</h1>
-          <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">קבע את ברירות המחדל של החנות</p>
+          <h1 className="text-2xl font-serif font-bold gold-text-gradient leading-tight">הגדרות עסק</h1>
+          <p className="text-[12px] text-white/40 uppercase font-bold tracking-widest">קבע את ברירות המחדל של החנות</p>
         </div>
       </div>
 
@@ -41,7 +41,7 @@ const AdminSettings: React.FC = () => {
             <h3 className="font-bold text-sm tracking-tight">תמחור שירות</h3>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold text-white/30 tracking-widest mr-1">מחיר לתספורת (ש"ח)</label>
+            <label className="text-[12px] uppercase font-bold text-white/30 tracking-widest mr-1">מחיר לתספורת (ש"ח)</label>
             <div className="relative">
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gold font-bold">₪</span>
               <input 
@@ -52,7 +52,7 @@ const AdminSettings: React.FC = () => {
               />
             </div>
           </div>
-          <p className="text-[10px] text-white/30 italic px-1 leading-relaxed">
+          <p className="text-[12px] text-white/30 italic px-1 leading-relaxed">
             מחיר זה משמש לחישוב הכנסות בספר החשבונות כאשר תור מסומן כ'הושלם'.
           </p>
         </div>
@@ -63,7 +63,7 @@ const AdminSettings: React.FC = () => {
             <h3 className="font-bold text-sm tracking-tight">הגדרות תורים</h3>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-bold text-white/30 tracking-widest mr-1">אורך תור (דקות)</label>
+            <label className="text-[12px] uppercase font-bold text-white/30 tracking-widest mr-1">אורך תור (דקות)</label>
             <select 
               value={formData.slotDuration}
               onChange={e => setFormData(p => ({ ...p, slotDuration: parseInt(e.target.value) }))}
@@ -77,7 +77,7 @@ const AdminSettings: React.FC = () => {
           </div>
           <div className="bg-gold/5 p-4 rounded-2xl border border-gold/10 flex items-start space-x-3 space-x-reverse">
             <Info size={16} className="text-gold shrink-0 mt-0.5" />
-            <p className="text-[10px] text-white/60 leading-relaxed">
+            <p className="text-[12px] text-white/60 leading-relaxed">
               שינוי אורך התור משפיע על חלוקת משמרות חדשות לחלונות זמן פנויים. תורים קיימים לא יושפעו.
             </p>
           </div>

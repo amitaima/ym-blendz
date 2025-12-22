@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { Plus, Receipt, Wallet, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { Plus, Receipt, Wallet, ArrowDownRight, ArrowUpRight, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 
 const AdminFinance: React.FC = () => {
-  const { state, addExpense, getFinancialStats } = useApp();
+  const { state, addExpense, getFinancialStats, deleteExpense } = useApp();
   const [showAdd, setShowAdd] = useState(false);
   const [newExp, setNewExp] = useState({ title: '', amount: 0 });
   const stats = getFinancialStats();
@@ -29,9 +29,9 @@ const AdminFinance: React.FC = () => {
           onClick={() => setShowAdd(!showAdd)}
           className="p-3 bg-gold/10 text-gold rounded-xl border border-gold/30"
         >
-          <Plus size={20} />
+          <Plus size={20} className={`transition-transform duration-300 ${showAdd ? 'rotate-45' : ''}`} />
         </button>
-        <h1 className="text-3xl font-serif font-bold italic gold-text-gradient">ספר חשבונות</h1>
+        <h1 className="text-3xl font-serif font-bold gold-text-gradient">ספר חשבונות</h1>
       </div>
 
       {showAdd && (
@@ -59,7 +59,7 @@ const AdminFinance: React.FC = () => {
 
       <div className="glass-card p-8 rounded-[2rem] border-gold/10 border relative overflow-hidden">
         <div className="absolute top-0 left-0 w-32 h-32 bg-gold/10 rounded-full blur-3xl -ml-16 -mt-16"></div>
-        <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/40 mb-2">מאזן נקי נוכחי</p>
+        <p className="text-[12px] uppercase tracking-[0.3em] font-bold text-white/40 mb-2">מאזן נקי נוכחי</p>
         <h2 className={`text-5xl font-bold ${stats.net >= 0 ? 'text-green-500' : 'text-red-500'}`}>
           ₪{Math.abs(stats.net)} {stats.net >= 0 ? '+' : '-'}
         </h2>
@@ -68,14 +68,14 @@ const AdminFinance: React.FC = () => {
           <div className="flex items-center space-x-3 space-x-reverse">
             <div className="p-2 bg-green-500/10 rounded-lg"><ArrowUpRight className="text-green-500" size={16} /></div>
             <div>
-              <p className="text-[8px] uppercase text-white/40 font-bold">סה\"כ מכירות</p>
+              <p className="text-[12px] uppercase text-white/40 font-bold">הכנסות</p>
               <p className="font-bold">₪{stats.income}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 space-x-reverse">
             <div className="p-2 bg-red-500/10 rounded-lg"><ArrowDownRight className="text-red-500" size={16} /></div>
             <div>
-              <p className="text-[8px] uppercase text-white/40 font-bold">הוצאות</p>
+              <p className="text-[12px] uppercase text-white/40 font-bold">הוצאות</p>
               <p className="font-bold">₪{stats.expenses}</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ const AdminFinance: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-serif font-bold italic text-xl">פעילות אחרונה</h3>
+        <h3 className="font-serif font-bold text-xl">פעילות אחרונה</h3>
         <div className="space-y-2">
           {state.expenses.slice().reverse().map(exp => (
             <div key={exp.id} className="flex justify-between items-center p-4 glass-card rounded-xl border-white/5 border">
@@ -91,10 +91,15 @@ const AdminFinance: React.FC = () => {
                 <Receipt className="text-white/20" size={18} />
                 <div>
                   <p className="text-sm font-bold">{exp.title}</p>
-                  <p className="text-[10px] text-white/40">{format(new Date(exp.date), 'd בMMM', { locale: he })}</p>
+                  <p className="text-[12px] text-white/40">{format(new Date(exp.date), 'd בMMM', { locale: he })}</p>
                 </div>
               </div>
-              <span className="font-bold text-red-400">₪{exp.amount} -</span>
+              <div className="flex items-center space-x-2 gap-3">
+                <span className="font-bold text-red-500">₪{exp.amount} -</span>
+                <button onClick={() => deleteExpense(exp.id)} className="w-10 h-10 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl flex items-center justify-center transition-all active:scale-90">
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
           {state.bookings.filter(b => b.status === 'completed').slice().reverse().map(b => (
@@ -103,7 +108,7 @@ const AdminFinance: React.FC = () => {
                 <Wallet className="text-gold/40" size={18} />
                 <div>
                   <p className="text-sm font-bold">שירות: {b.customerName}</p>
-                  <p className="text-[10px] text-white/40">{format(new Date(b.date), 'd בMMM', { locale: he })}</p>
+                  <p className="text-[12px] text-white/40">{format(new Date(b.date), 'd בMMM', { locale: he })}</p>
                 </div>
               </div>
               <span className="font-bold text-green-400">₪{state.settings.pricePerCut} +</span>

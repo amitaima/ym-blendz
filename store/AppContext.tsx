@@ -35,6 +35,7 @@ interface AppContextType {
   updateBookingStatus: (id: string, status: BookingStatus) => Promise<void>;
   deleteBooking: (id: string) => Promise<void>;
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
   updateSettings: (settings: Partial<BusinessSettings>) => Promise<void>;
   updateDayAvailability: (date: string, blocks: TimeBlock[]) => Promise<void>;
   addToWaitlist: (request: Omit<WaitlistRequest, 'id'>) => Promise<void>;
@@ -268,6 +269,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     await addDoc(collection(db, "expenses"), expense);
   };
 
+  const deleteExpense = async (id: string): Promise<void> => {
+    await deleteDoc(doc(db, "expenses", id));
+  };
+
   const updateSettings = async (settings: Partial<BusinessSettings>): Promise<void> => {
     await setDoc(doc(db, "config", "business"), settings, { merge: true });
   };
@@ -290,7 +295,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      state, loading, authError, login, loginWithGoogle, signup, logout, resendVerificationEmail, updateProfile, isAdminAuthenticated, addBooking, updateBookingStatus, deleteBooking, addExpense, updateSettings, updateDayAvailability, addToWaitlist, getFinancialStats
+      state, loading, authError, login, loginWithGoogle, signup, logout, resendVerificationEmail, updateProfile, isAdminAuthenticated, addBooking, updateBookingStatus, deleteBooking, addExpense, deleteExpense, updateSettings, updateDayAvailability, addToWaitlist, getFinancialStats
     }}>
       {children}
     </AppContext.Provider>

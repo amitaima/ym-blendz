@@ -98,12 +98,12 @@ const AdminBookings: React.FC = () => {
       <div className="flex justify-between items-center flex-row-reverse">
         <div className="flex space-x-2 flex-row-reverse">
           <button onClick={() => setViewDate(addMonths(viewDate, 1))} className="p-2 glass-card rounded-lg text-gold transition-transform active:scale-90"><ChevronLeft size={20} /></button>
-          <span className="px-3 py-2 glass-card rounded-lg font-bold text-[10px] uppercase tracking-widest flex items-center">
+          <span className="px-3 py-2 glass-card rounded-lg font-bold text-[12px] uppercase tracking-widest flex items-center">
             {format(viewDate, 'MMM yyyy', { locale: he })}
           </span>
           <button onClick={() => setViewDate(subMonths(viewDate, 1))} className="p-2 glass-card rounded-lg text-gold transition-transform active:scale-90"><ChevronRight size={20} /></button>
         </div>
-        <h1 className="text-2xl font-serif font-bold italic gold-text-gradient">לוח זמנים</h1>
+        <h1 className="text-2xl font-serif font-bold gold-text-gradient">לוח זמנים</h1>
       </div>
 
       {shiftToDeleteIndex !== null && (
@@ -113,7 +113,7 @@ const AdminBookings: React.FC = () => {
               <AlertTriangle className="text-red-500 w-10 h-10" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-serif font-bold italic text-white leading-tight gold-text-gradient">התנגשות בלוח הזמנים</h3>
+              <h3 className="text-2xl font-serif font-bold text-white leading-tight gold-text-gradient">התנגשות בלוח הזמנים</h3>
               <p className="text-white/40 text-sm leading-relaxed">
                 אתה מנסה להסיר משמרת עם <span className="text-gold font-bold">{conflictedBookings.length} תורים פעילים</span>.
               </p>
@@ -126,7 +126,7 @@ const AdminBookings: React.FC = () => {
               <p>המשך הפעולה <span className="text-white font-bold underline">יבטל את כל התורים</span> בחלון הזמן הזה וישלח הודעת SMS ללקוחות.</p>
               <div className="pt-2 flex items-center justify-start gap-2 text-gold">
                  <Send size={12} />
-                <span className="text-[10px] font-bold uppercase">שליחת הודעות אוטומטית פעילה</span>
+                <span className="text-[12px] font-bold uppercase">שליחת הודעות אוטומטית פעילה</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -146,7 +146,7 @@ const AdminBookings: React.FC = () => {
 
       <div className="grid grid-cols-7 gap-2">
         {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((d, i) => (
-          <div key={i} className="text-center text-[10px] font-bold text-white/30 py-2">{d}</div>
+          <div key={i} className="text-center text-[12px] font-bold text-white/30 py-2">{d}</div>
         ))}
         {/* {Array.from({ length: 6 - getDay(endOfMonth(viewDate)) }).map((_, i) => <div key={`empty-end-${i}`} />)} */}
         {Array.from({ length: getDay(daysInMonth[0]) }).map((_, i) => (
@@ -169,7 +169,7 @@ const AdminBookings: React.FC = () => {
                 ${isTodayDate && !isSelected ? 'border-gold/50 text-gold shadow-[inset_0_0_10px_rgba(191,149,63,0.1)]' : ''}
                 ${closed && !isSelected ? 'opacity-20' : ''}`}
             >
-              <span className="text-xs font-bold">{format(date, 'd')}</span>
+              <span className="text-sm font-bold">{format(date, 'd')}</span>
               {count > 0 && (
                 <div className={`absolute bottom-1.5 w-1 h-1 rounded-full ${isSelected ? 'bg-black' : 'bg-gold animate-pulse'}`} />
               )}
@@ -186,7 +186,7 @@ const AdminBookings: React.FC = () => {
         {selectedDay ? (
           <>
             <div className="flex justify-between items-center border-b border-white/5 pb-4 flex-row-reverse">
-                <span className={`text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border transition-colors ${isClosed ? 'border-red-500/30 text-red-500 bg-red-500/5' : 'border-green-500/30 text-green-500 bg-green-500/5'}`}>
+                <span className={`text-[12px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border transition-colors ${isClosed ? 'border-red-500/30 text-red-500 bg-red-500/5' : 'border-green-500/30 text-green-500 bg-green-500/5'}`}>
                     {isClosed ? 'יום חופש' : 'עובד'}
                 </span>
                 <div className="flex items-center space-x-3 space-x-reverse">
@@ -194,15 +194,15 @@ const AdminBookings: React.FC = () => {
                     <Briefcase size={18} className="text-gold" />
                     </div>
                     <div>
-                    <h3 className="font-serif font-bold italic text-lg leading-tight gold-text-gradient">{format(selectedDay, 'EEEE', { locale: he })}</h3>
-                    <p className="text-[10px] text-gold/60 uppercase tracking-widest font-bold">{format(selectedDay, 'd בMMM, yyyy', { locale: he })}</p>
+                    <h3 className="font-serif font-bold text-lg leading-tight gold-text-gradient">{format(selectedDay, 'EEEE', { locale: he })}</h3>
+                    <p className="text-[12px] text-gold/60 uppercase tracking-widest font-bold">{format(selectedDay, 'd בMMM, yyyy', { locale: he })}</p>
                     </div>
                 </div>
             </div>
 
             <div className="space-y-4 pt-4">
               <div className="flex justify-between items-center px-1">
-                <p className="text-[10px] uppercase font-bold text-gold/60 tracking-widest">משמרות פעילות</p>
+                <p className="text-[12px] uppercase font-bold text-gold/60 tracking-widest">משמרות פעילות</p>
                 <button 
                   onClick={() => setIsAddingShift(!isAddingShift)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isAddingShift ? 'bg-red-500/10 text-red-500 border-red-500/30' : 'bg-gold/10 text-gold border-gold/30'} border`}
@@ -239,10 +239,10 @@ const AdminBookings: React.FC = () => {
             {isAddingShift && (
               <div className="space-y-5 pt-4 border-t border-white/5 animate-in slide-in-from-top-4 duration-300">
                 <div className="bg-white/5 p-5 rounded-3xl border border-gold/20 space-y-6">
-                  <p className="text-[10px] uppercase font-bold text-gold tracking-widest text-center">הגדר משמרת חדשה</p>
+                  <p className="text-[12px] uppercase font-bold text-gold tracking-widest text-center">הגדר משמרת חדשה</p>
                   <div className="flex items-center justify-center gap-4 flex-row-reverse">
                     <div className="flex-1 space-y-2">
-                      <p className="text-[8px] uppercase font-bold text-white/30 text-center tracking-tighter">שעת סיום</p>
+                      <p className="text-[12px] uppercase font-bold text-white/30 text-center tracking-tighter">שעת סיום</p>
                       <div className="flex gap-1">
                          <select value={endTime.min} onChange={e => setEndTime(p => ({ ...p, min: e.target.value }))} className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-sm font-bold text-center outline-none focus:border-gold appearance-none">
                           {minutes.map(m => <option key={m} value={m}>{m}</option>)}
@@ -256,7 +256,7 @@ const AdminBookings: React.FC = () => {
                       <ChevronLeft size={16} />
                     </div>
                     <div className="flex-1 space-y-2">
-                      <p className="text-[8px] uppercase font-bold text-white/30 text-center tracking-tighter">שעת התחלה</p>
+                      <p className="text-[12px] uppercase font-bold text-white/30 text-center tracking-tighter">שעת התחלה</p>
                       <div className="flex gap-1">
                         <select value={startTime.min} onChange={e => setStartTime(p => ({ ...p, min: e.target.value }))} className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-sm font-bold text-center outline-none focus:border-gold appearance-none">
                           {minutes.map(m => <option key={m} value={m}>{m}</option>)}
@@ -282,9 +282,9 @@ const AdminBookings: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-serif font-bold italic text-xl flex items-center justify-start gap-2 gold-text-gradient">
+        <h3 className="font-serif font-bold text-xl flex items-center justify-start gap-2 gold-text-gradient">
           סדר יום
-          {selectedDayBookings.length > 0 && <span className="text-[10px] bg-gold/20 text-gold px-2 py-0.5 rounded-full not-italic border border-gold/10">{selectedDayBookings.length}</span>}
+          {selectedDayBookings.length > 0 && <span className="text-[12px] bg-gold/20 text-gold px-2 py-0.5 rounded-full not-italic border border-gold/10">{selectedDayBookings.length}</span>}
         </h3>
         <div className="space-y-3">
           {selectedDayBookings.length > 0 ? selectedDayBookings.map(booking => (
@@ -297,7 +297,7 @@ const AdminBookings: React.FC = () => {
                   <span className="font-bold text-gold tracking-tight">{booking.timeSlot}</span>
                 </div>
                  <div className="flex items-center space-x-2 space-x-reverse">
-                  <span className={`text-[8px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border ${
+                  <span className={`text-[12px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border ${
                     booking.status === BookingStatus.CANCELED ? 'bg-red-500/10 border-red-500/20 text-red-500' : 
                     booking.status === BookingStatus.COMPLETED ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-gold/10 border-gold/20 text-gold'
                   }`}>
@@ -306,14 +306,14 @@ const AdminBookings: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex justify-between items-center pr-10 border-t border-white/5 pt-3">
+              <div className="flex justify-between items-center pr-2 border-t border-white/5 pt-3">
                 <div className="space-y-1 text-right">
                   <div className="flex items-center space-x-2 space-x-reverse text-sm font-bold">
-                    <User size={14} className="text-white/40" />
+                    <User size={16} className="text-white/40" />
                     <span className="text-white">{booking.customerName}</span>
                   </div>
-                  <div className="flex items-center space-x-2 space-x-reverse text-xs text-white/40">
-                    <Phone size={12} />
+                  <div className="flex items-center space-x-2 space-x-reverse text-sm text-white/40">
+                    <Phone size={14} />
                     <a href={`tel:${booking.customerPhone}`} className="hover:text-gold transition-colors">{booking.customerPhone}</a>
                   </div>
                 </div>

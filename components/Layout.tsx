@@ -32,13 +32,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               YM BLENDZ
             </h1>
           </div>
-          <p className="text-[12px] tracking-[0.2em] text-gold/60 font-semibold leading-relaxed mt-1">מצוינות בטיפוח</p>
+          <p className="text-[14px] tracking-[0.2em] text-gold/60 font-semibold leading-relaxed mt-1">מצוינות בטיפוח</p>
         </div>
         <button 
           onClick={() => setIsLogoutDialogOpen(true)}
           className="w-10 h-10 rounded-full glass-card flex items-center justify-center border-white/5 border hover:border-red-500/50 transition-colors group"
         >
-          <LogOut className="w-4 h-4 text-white/40 group-hover:text-red-500 -rotate-180" />
+          <LogOut className="w-4 h-4 text-white/60 group-hover:text-red-500 -rotate-180" />
         </button>
       </header>
 
@@ -72,15 +72,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="glass-card rounded-3xl p-8 border-gold/20 border max-w-sm w-full text-center space-y-6"
             >
-              <h2 className="text-xl font-serif gold-text-gradient">התנתקות</h2>
+              <h2 className="text-2xl font-bold font-serif gold-text-gradient">התנתקות</h2>
               <p className="text-white/70">האם אתה בטוח שברצונך להתנתק?</p>
               <div className="flex gap-4">
-                 <button
-                  onClick={() => setIsLogoutDialogOpen(false)}
-                  className="w-full text-center py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-all active:scale-95 text-sm text-white/80 font-semibold"
-                >
-                  ביטול
-                </button>
+                <GoldButton variant="outline" onClick={() => setIsLogoutDialogOpen(false)}>
+                ביטול
+                </GoldButton>
                 <GoldButton fullWidth onClick={handleLogout} variant="pink">
                   התנתק
                 </GoldButton>
@@ -102,7 +99,7 @@ const NavItem: React.FC<{ to: string, icon: React.ReactNode, active: boolean, la
     <div className="transition-transform duration-150">
       {React.cloneElement(icon as React.ReactElement<any>, { size: 18, strokeWidth: active ? 2.5 : 2, className: active ? 'text-gold' : '' })}
     </div>
-    <span className={`text-[10px] mt-1 font-bold w-full text-center block leading-tight tracking-widest uppercase transition-opacity duration-150 ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
+    <span className={`text-[12px] mt-1 font-bold w-full text-center block leading-tight tracking-widest uppercase transition-opacity duration-150 ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
   </Link>
 );
 
