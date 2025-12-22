@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, Settings, DollarSign, User, Scissors, LogOut } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { UserRole } from '../types';
+import GoldButton from './GoldButton';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { state, logout } = useApp();
   const location = useLocation();
   const isAdmin = state.currentUser?.role === UserRole.ADMIN;
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setIsLogoutDialogOpen(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white font-sans mx-auto relative max-w-md lg:max-w-4xl">
@@ -16,7 +24,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="absolute top-1/2 -left-24 w-64 h-64 bg-gold/5 opacity-5 rounded-full blur-[100px]"></div>
       </div>
 
-      {/* Header */}
       <header className="p-6 flex justify-between items-center z-10 sticky top-0 bg-black/80 backdrop-blur-md border-b border-white/5">
         <div className="flex flex-col items-start">
           <div className="flex items-center">
@@ -25,23 +32,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               YM BLENDZ
             </h1>
           </div>
-          {/* <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-semibold leading-relaxed mt-1">Grooming Excellence</p> */}
           <p className="text-[12px] tracking-[0.2em] text-gold/60 font-semibold leading-relaxed mt-1">מצוינות בטיפוח</p>
         </div>
         <button 
-          onClick={logout}
+          onClick={() => setIsLogoutDialogOpen(true)}
           className="w-10 h-10 rounded-full glass-card flex items-center justify-center border-white/5 border hover:border-red-500/50 transition-colors group"
         >
           <LogOut className="w-4 h-4 text-white/40 group-hover:text-red-500 -rotate-180" />
         </button>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 pb-24 z-0">
         {children}
       </main>
 
-      {/* Navigation */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] glass-card rounded-[3rem] px-8 py-2 flex justify-between items-center z-50 border-gold/10 border shadow-[0_10px_40px_rgba(0,0,0,0.5)] max-w-[360px] lg:max-w-2xl">
         {isAdmin ? (
           <>
@@ -58,6 +62,33 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </>
         )}
       </nav>
+
+      <AnimatePresence>
+        {isLogoutDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="glass-card rounded-3xl p-8 border-gold/20 border max-w-sm w-full text-center space-y-6"
+            >
+              <h2 className="text-xl font-serif gold-text-gradient">התנתקות</h2>
+              <p className="text-white/70">האם אתה בטוח שברצונך להתנתק?</p>
+              <div className="flex gap-4">
+                 <button
+                  onClick={() => setIsLogoutDialogOpen(false)}
+                  className="w-full text-center py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-all active:scale-95 text-sm text-white/80 font-semibold"
+                >
+                  ביטול
+                </button>
+                <GoldButton fullWidth onClick={handleLogout} variant="pink">
+                  התנתק
+                </GoldButton>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
