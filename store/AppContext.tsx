@@ -119,16 +119,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
     } 
 
-    // if (state.currentUser.role === UserRole.ADMIN) {
-    //   listeners.push(onSnapshot(collection(db, "bookings"), s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
-    //   listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
-    //   listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
-    // } else {
-    //   const q = query(collection(db, "bookings"), where("customerId", "==", state.currentUser.uid));
-    //   listeners.push(onSnapshot(q, s => setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))));
-    // }
-    // The 'else' block that previously filtered bookings for customers has been removed.
-
     return () => listeners.forEach(unsub => unsub());
   }, [state.currentUser]);
   
@@ -240,6 +230,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateProfile = async (profile: Partial<Omit<UserProfile, 'uid' | 'role'>>): Promise<void> => {
     if (!state.currentUser) return;
     await updateDoc(doc(db, "users", state.currentUser.uid), profile);
+    setState(prev => ({ 
+        ...prev, 
+        currentUser: prev.currentUser ? { ...prev.currentUser, ...profile } : undefined 
+    }));
   };
 
   const addBooking = async (booking: Omit<Booking, 'id' | 'status' | 'createdAt' | 'customerId'>) => {

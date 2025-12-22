@@ -78,7 +78,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <GoldButton variant="outline" onClick={() => setIsLogoutDialogOpen(false)}>
                 ביטול
                 </GoldButton>
-                <GoldButton fullWidth onClick={handleLogout} variant="pink">
+                <GoldButton className='shadow-xl' fullWidth onClick={handleLogout} variant="pink">
                   התנתק
                 </GoldButton>
               </div>

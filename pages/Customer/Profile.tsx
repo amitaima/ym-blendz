@@ -234,7 +234,7 @@ const CustomerProfile: React.FC = () => {
                   </button>
                 </div>
                 <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <GoldButton 
                         variant="outline" 
                         onClick={() => handleAddToCalendar(b)} 
@@ -245,7 +245,7 @@ const CustomerProfile: React.FC = () => {
                     <GoldButton 
                         variant="pink" 
                         onClick={() => window.open('https://www.bitpay.co.il/app/me/76089096-9818-4D7F-B3B8-86F7DBC4282F', '_blank')} 
-                        className="px-6 text-base flex items-center h-10"
+                        className="px-6 text-base flex items-center h-10 shadow-xl"
                     >
                         שלם בביט
                     </GoldButton>

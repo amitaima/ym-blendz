@@ -152,7 +152,7 @@ const AuthScreen: React.FC = () => {
                   האימייל <strong className='text-white'>{formData.email}</strong> אינו מאומת. יש לבדוק את תיבת הדואר הנכנס או לבקש קישור חדש.
                 </p>
                 {error && <p className="text-pinkAccent text-sm font-bold uppercase tracking-widest text-center py-2">{error}</p>}
-                <GoldButton fullWidth onClick={handleResendVerification} disabled={resendStatus === 'sending' || resendStatus === 'sent'} variant="pink">
+                <GoldButton className='shadow-xl' fullWidth onClick={handleResendVerification} disabled={resendStatus === 'sending' || resendStatus === 'sent'} variant="pink">
                   {resendStatus === 'initial' && <><Send size={16}/> שלח קישור חדש</>}
                   {resendStatus === 'sending' && 'שולח...'}
                   {resendStatus === 'sent' && <><CheckCircle size={16}/> נשלח בהצלחה!</>}
