@@ -29,8 +29,8 @@ const AnimatedRoutes = () => {
           <Loader className="text-gold w-8 h-8 animate-spin" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-3xl font-serif italic gold-text-gradient">YM-Blendz</h2>
-          <p className="text-white/40 text-sm">Loading...</p>
+          <h2 className="text-3xl font-en-serif italic gold-text-gradient">YM-Blendz</h2>
+          <p className="text-white/40 text-sm">טוען...</p>
         </div>
       </div>
     );
@@ -59,7 +59,7 @@ const AnimatedRoutes = () => {
               {/* Customer Routes */}
               <Route path="/" element={<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}><CustomerHome /></motion.div>} />
               <Route path="/book" element={<motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}><BookingFlow /></motion.div>} />
-              <Route path="/my-appointments" element={<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}><CustomerProfile /></motion.div>} />
+              <Route path="/profile" element={<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}><CustomerProfile /></motion.div>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           )}

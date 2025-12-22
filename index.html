@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YM Blendz | Premium Barbershop</title>
+    <title>YM Blendz | מספרה פרימיום</title> <!--Premium Barbershop-->
 
     <!-- PWA Tags -->
     <link rel="manifest" href="/manifest.json">
@@ -15,7 +15,7 @@
     <link rel="icon" href="/icons/icon-128x128.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Heebo:wght@300;400;500;600;700;800&family=Noto+Serif+Hebrew:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -31,8 +31,10 @@
                         charcoal: '#121212'
                     },
                     fontFamily: {
-                        sans: ['Montserrat', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif']
+                        sans: ['Heebo', 'ui-sans-serif', 'system-ui'],
+                        serif: ['Noto Serif Hebrew', 'ui-serif', 'serif'],
+                        // sans: ['Montserrat', 'sans-serif'],
+                        'en-serif': ['Playfair Display', 'ui-serif','serif']
                     },
                     fontSize: {
                         '2.5xl': '1.6rem'
@@ -51,7 +53,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         .gold-text-gradient {
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            background: linear-gradient(to left, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }

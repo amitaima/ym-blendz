@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
-import { Mail, Lock, User, Phone, Scissors, ChevronRight, Eye, EyeOff, Sparkles, Send, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Phone, Scissors, ChevronLeft, Eye, EyeOff, Sparkles, Send, CheckCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthScreen: React.FC = () => {
@@ -33,19 +33,36 @@ const AuthScreen: React.FC = () => {
         if (!verified) {
           setNeedsVerification(true);
         }
-        // On successful, verified login, the app state will change and this component will unmount.
-        // No need to set loading to false here.
-      } else { // Signup mode
-        await signup({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password
-        });
+      } else {
+        await signup({ name: formData.name, email: formData.email, phone: formData.phone, password: formData.password });
         setEmailVerificationSent(true);
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+      // Firebase error mapping
+      let friendlyMessage = "אירעה שגיאה בלתי צפויה.";
+      if (err.code) {
+          switch (err.code) {
+              case 'auth/user-not-found':
+              case 'auth/wrong-password':
+                  friendlyMessage = "האימייל או הסיסמה שהזנת אינם נכונים.";
+                  break;
+              case 'auth/invalid-email':
+                  friendlyMessage = "כתובת האימייל אינה תקינה.";
+                  break;
+              case 'auth/email-already-in-use':
+                  friendlyMessage = "האימייל הזה כבר רשום במערכת.";
+                  break;
+              case 'auth/weak-password':
+                  friendlyMessage = "הסיסמה צריכה להכיל לפחות 6 תווים.";
+                  break;
+              case 'auth/too-many-requests':
+                  friendlyMessage = "יותר מדי ניסיונות. נסה שוב מאוחר יותר.";
+                  break;
+              default:
+                friendlyMessage = err.message;
+          }
+      }
+      setError(friendlyMessage);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +75,7 @@ const AuthScreen: React.FC = () => {
       await resendVerificationEmail();
       setResendStatus('sent');
     } catch (error) {
-      setError("Failed to resend email. Please try again in a moment.");
+      setError("שליחת המייל נכשלה. נסה שוב בעוד רגע.");
       setResendStatus('initial');
     }
   }
@@ -69,7 +86,7 @@ const AuthScreen: React.FC = () => {
     try {
       await loginWithGoogle();
     } catch (error: any) {
-      setError(error.message || "Google sign-in failed. Please try again.");
+      setError(error.message || "ההתחברות עם גוגל נכשלה. נסה שוב.");
       setIsLoading(false);
     }
   };
@@ -93,10 +110,10 @@ const AuthScreen: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-gold opacity-10 rounded-full blur-[120px]"></div>
-        <div className="absolute top-1/2 -right-24 w-80 h-80 bg-pinkAccent opacity-5 rounded-full blur-[100px]"></div>
+    <div className="min-h-screen bg-black text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden text-right" dir="rtl">
+      <div className="absolute top-0 right-0 w-full h-full pointer-events-none overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-gold opacity-10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-1/2 -left-24 w-80 h-80 bg-pinkAccent opacity-5 rounded-full blur-[100px]"></div>
       </div>
 
       <motion.div 
@@ -107,10 +124,10 @@ const AuthScreen: React.FC = () => {
         <div className="text-center space-y-2">
            <div className="flex justify-center mb-4">
             <div className="w-20 h-20 rounded-full glass-card border-gold/30 border flex items-center justify-center shadow-[0_0_30px_rgba(191,149,63,0.1)]">
-              <Scissors className="text-gold w-10 h-10 -rotate-90" />
+              <Scissors className="text-gold w-10 h-10 rotate-90" />
             </div>
           </div>
-          <h1 className="text-4xl font-serif italic font-bold gold-text-gradient tracking-tighter">
+          <h1 className="text-4xl font-en-serif italic font-bold gold-text-gradient tracking-tighter">
             YM BLENDZ
           </h1>
           <p className="text-[10px] uppercase tracking-[0.4em] text-white/30 font-semibold">Grooming Excellence</p>
@@ -121,26 +138,26 @@ const AuthScreen: React.FC = () => {
             {emailVerificationSent ? (
               <motion.div key="verificationSent" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="text-center space-y-4 p-4">
                 <Mail className="mx-auto text-gold w-12 h-12 mb-4" />
-                <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verify Your Email</h2>
+                <h2 className="text-2xl font-bold font-serif gold-text-gradient">אמת את האימייל שלך</h2>
                 <p className="text-white/60 text-sm">
-                  Success! We've sent a verification link to <strong className='text-white'>{formData.email}</strong>. Please check your inbox and spam folder.
+                  הצלחה! שלחנו קישור אימות אל <strong className='text-white'>{formData.email}</strong>. יש לבדוק את תיבת הדואר הנכנס ותיקיית הספאם.
                 </p>
-                <SecondaryButton onClick={resetAuthState}><ArrowLeft size={12}/> Back to Login</SecondaryButton>
+                <SecondaryButton onClick={resetAuthState}><ArrowRight size={12}/> חזרה להתחברות</SecondaryButton>
               </motion.div>
             ) : needsVerification ? (
               <motion.div key="needsVerification" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="text-center space-y-4 p-4">
                 <Send className="mx-auto text-gold w-12 h-12 mb-4" />
-                <h2 className="text-2xl font-bold font-serif gold-text-gradient">Verification Required</h2>
+                <h2 className="text-2xl font-bold font-serif gold-text-gradient">נדרש אימות</h2>
                 <p className="text-white/60 text-sm">
-                  Your email <strong className='text-white'>{formData.email}</strong> is not verified. Please check your inbox or request a new link.
+                  האימייל <strong className='text-white'>{formData.email}</strong> אינו מאומת. יש לבדוק את תיבת הדואר הנכנס או לבקש קישור חדש.
                 </p>
                 {error && <p className="text-pinkAccent text-xs font-bold uppercase tracking-widest text-center py-2">{error}</p>}
                 <GoldButton fullWidth onClick={handleResendVerification} disabled={resendStatus === 'sending' || resendStatus === 'sent'} variant="pink">
-                  {resendStatus === 'initial' && <><Send size={16}/> Resend Link</>}
-                  {resendStatus === 'sending' && 'Sending...'}
-                  {resendStatus === 'sent' && <><CheckCircle size={16}/> Sent Successfully!</>}
+                  {resendStatus === 'initial' && <><Send size={16}/> שלח קישור חדש</>}
+                  {resendStatus === 'sending' && 'שולח...'}
+                  {resendStatus === 'sent' && <><CheckCircle size={16}/> נשלח בהצלחה!</>}
                 </GoldButton>
-                <SecondaryButton onClick={resetAuthState}><ArrowLeft size={12}/> Back to Login</SecondaryButton>
+                <SecondaryButton onClick={resetAuthState}><ArrowRight size={12}/> חזרה להתחברות</SecondaryButton>
               </motion.div>
             ) : (
               <motion.div key="authForm" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
@@ -149,13 +166,13 @@ const AuthScreen: React.FC = () => {
                     onClick={() => { setMode('login'); setError(''); }}
                     className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'login' ? 'text-gold' : 'text-white/30'}`}
                   >
-                    Sign In
+                    התחברות
                   </button>
                   <button 
                     onClick={() => { setMode('signup'); setError(''); }}
                     className={`text-xs uppercase font-bold tracking-widest transition-all ${mode === 'signup' ? 'text-gold' : 'text-white/30'}`}
                   >
-                    Join Us
+                    הרשמה
                   </button>
                 </div>
 
@@ -163,31 +180,31 @@ const AuthScreen: React.FC = () => {
                     <AnimatePresence mode="wait">
                     <motion.div
                         key={mode}
-                        initial={{ opacity: 0, x: 10 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
+                        exit={{ opacity: 0, x: 10 }}
                         transition={{ duration: 0.2 }}
                         className="space-y-4"
                     >
                         {mode === 'signup' && (
                         <>
                             <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                            <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
                             <input 
                                 type="text" 
-                                placeholder="Full Name"
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                                placeholder="שם מלא"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 focus:border-gold outline-none transition-all text-sm"
                                 value={formData.name}
                                 onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                                 required
                             />
                             </div>
                             <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                            <Phone className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
                             <input 
                                 type="tel" 
-                                placeholder="Phone Number"
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                                placeholder="מספר טלפון"
+                                className="w-full bg-white/5 text-right border border-white/10 rounded-2xl p-4 pr-12 focus:border-gold outline-none transition-all text-sm"
                                 value={formData.phone}
                                 onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
                                 required
@@ -197,11 +214,11 @@ const AuthScreen: React.FC = () => {
                         )}
                         
                         <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                        <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
                         <input 
                             type="email" 
-                            placeholder="Email Address"
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-gold outline-none transition-all text-sm"
+                            placeholder="כתובת אימייל"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 focus:border-gold outline-none transition-all text-sm"
                             value={formData.email}
                             onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                             required
@@ -209,11 +226,11 @@ const AuthScreen: React.FC = () => {
                         </div>
                         
                         <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
+                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gold/40 w-4 h-4" />
                         <input 
                             type={showPassword ? "text" : "password"} 
-                            placeholder="Password"
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 pr-12 focus:border-gold outline-none transition-all text-sm"
+                            placeholder="סיסמה"
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pr-12 pl-12 focus:border-gold outline-none transition-all text-sm"
                             value={formData.password}
                             onChange={e => setFormData(p => ({ ...p, password: e.target.value }))}
                             required
@@ -221,7 +238,7 @@ const AuthScreen: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-gold transition-colors"
                         >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -237,13 +254,13 @@ const AuthScreen: React.FC = () => {
 
                     <div className="space-y-4 pt-2">
                     <GoldButton fullWidth type="submit" variant={mode === 'signup' ? 'pink' : 'gold'} disabled={isLoading}>
-                        {isLoading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')} 
-                        {!isLoading && <ChevronRight size={16} />}
+                        {isLoading ? 'מעבד נתונים...' : (mode === 'login' ? 'התחבר' : 'צור חשבון')} 
+                        {!isLoading && <ChevronLeft size={16} />}
                     </GoldButton>
 
                     <div className="flex items-center gap-4 py-2">
                         <div className="h-px flex-1 bg-white/10"></div>
-                        <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">OR</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/20 font-bold">או</span>
                         <div className="h-px flex-1 bg-white/10"></div>
                     </div>
 
@@ -253,10 +270,10 @@ const AuthScreen: React.FC = () => {
                         disabled={isLoading}
                         className="w-full flex items-center justify-center gap-3 py-4 rounded-xl glass-card border-white/10 hover:border-gold/30 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
                         <span className="text-[10px] uppercase font-bold tracking-widest text-white/60 group-hover:text-white transition-colors">
-                        {mode === 'login' ? 'Login with Google' : 'Signup with Google'}
+                        {mode === 'login' ? 'התחבר עם Google' : 'הירשם עם Google'}
                         </span>
+                        <img src="https://www.google.com/favicon.ico" className="w-4 h-4 group-hover:opacity-100 opacity-60 transition-opacity" alt="Google" />
                     </button>
                     </div>
                 </form>
@@ -268,7 +285,7 @@ const AuthScreen: React.FC = () => {
         <div className="text-center">
           <p className="text-[10px] text-white/20 uppercase tracking-widest flex items-center justify-center gap-2">
             <Sparkles size={10} className="text-gold" />
-            Luxury Private Studio Experience
+            חווית סטודיו פרטית ויוקרתית
             <Sparkles size={10} className="text-gold" />
           </p>
         </div>

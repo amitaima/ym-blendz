@@ -24,7 +24,7 @@ const AdminGuard: React.FC<AdminGuardProps> = ({ children }) => {
           <Loader className="text-gold w-8 h-8 animate-spin" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-3xl font-serif italic gold-text-gradient">Verifying Access</h2>
+          <h2 className="text-3xl font-serif font-bold italic gold-text-gradient">Verifying Access</h2>
           <p className="text-white/40 text-sm">Please wait...</p>
         </div>
       </div>

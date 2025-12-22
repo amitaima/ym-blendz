@@ -21,39 +21,5 @@ This is the official web application for YM BLENDZ, a premium barbershop offerin
 *   **Language:** [TypeScript](https://www.typescriptlang.org/)
 *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 *   **Animations:** [Framer Motion](https://www.framer.com/motion/)
+*   **DB:** [Firebase Firestore DB](https://firebase.google.com/docs/firestore)
 *   **Deployment:** [Firebase Hosting](https://firebase.google.com/docs/hosting)
-
----
-
-## 🚀 Getting Started
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/amitaima/ym-blendz.git
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-
----
-
-## ☁️ Deployment
-
-The application is deployed on Firebase Hosting.
-
-1.  **Build the project for production:**
-    ```bash
-    npm run build
-    ```
-
-2.  **Deploy to Firebase:**
-    ```bash
-    firebase deploy --only hosting
-    ```
