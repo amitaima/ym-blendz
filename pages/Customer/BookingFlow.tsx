@@ -47,6 +47,47 @@ const BookingFlow: React.FC = () => {
 
   const dates = useMemo(() => Array.from({ length: 14 }).map((_, i) => addDays(startOfToday(), i)), []);
 
+  const datesWithAvailability = useMemo(() => {
+    return dates.map(date => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const blocks = state.settings.customAvailability?.[dateStr] || [];
+      if (blocks.length === 0) {
+        return { date, status: 'closed' };
+      }
+
+      const slots: string[] = [];
+      const now = new Date();
+      const slotDuration = state.settings.slotDuration;
+
+      blocks.forEach(block => {
+        let current = new Date(`${dateStr}T${block.start}`);
+        const end = new Date(`${dateStr}T${block.end}`);
+
+        while (isBefore(current, end)) {
+          const timeStr = format(current, 'HH:mm');
+          if (!isSameDay(date, now) || isAfter(current, now)) {
+            const isBooked = state.bookings.some(b => 
+              b.date === dateStr && 
+              b.timeSlot === timeStr && 
+              b.status !== 'canceled'
+            );
+            if (!isBooked) {
+              slots.push(timeStr);
+            }
+          }
+          current = addMinutes(current, slotDuration);
+        }
+      });
+      
+      const availableSlots = Array.from(new Set(slots));
+      if (availableSlots.length > 0) {
+        return { date, status: 'available' };
+      } else {
+        return { date, status: 'full' };
+      }
+    });
+  }, [dates, state.settings, state.bookings]);
+
   const timeSlots = useMemo(() => {
     if (!selectedDate) return [];
     const slots: string[] = [];
@@ -223,27 +264,30 @@ const BookingFlow: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-4 gap-2">
-            {dates.map((date, i) => {
-              const dateStr = format(date, 'yyyy-MM-dd');
-              const blocks = state.settings.customAvailability?.[dateStr] || [];
-              const isOpen = blocks.length > 0;
+            {datesWithAvailability.map(({ date, status }, i) => {
               const isSelected = selectedDate && isSameDay(date, selectedDate);
               
               return (
                 <button
                   key={i}
-                  onClick={() => toggleDate(date)}
+                  onClick={() => status !== 'closed' && toggleDate(date)}
+                  disabled={status === 'closed' || status === 'full'}
                   className={`flex flex-col items-center justify-center py-4 rounded-[1.25rem] border transition-all duration-300 relative overflow-hidden
                     ${isSelected ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105 z-10' : 'glass-card text-white/80'}
-                    ${isOpen && !isSelected ? 'border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : ''}
-                    ${!isOpen ? 'opacity-50' : 'hover:border-gold/30'}`}
+                    ${status === 'available' && !isSelected ? 'border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : ''}
+                    ${status === 'full' && !isSelected ? 'border-orange-500' : ''}
+                    ${status === 'closed' || status === 'full' ? 'opacity-50' : 'hover:border-gold/30'}`
+                  }
                 >
-                  {isOpen && (
+                  {status === 'available' && (
                     <div className={`absolute top-3 left-3 w-1 h-1 rounded-full shadow-[0_0_6px_rgba(34,197,94,1)] ${isSelected ? 'bg-black' : 'bg-green-500'}`} />
+                  )}
+                  {status === 'full' && (
+                    <div className={`absolute top-3 left-3 w-1 h-1 rounded-full shadow-[0_0_6px_rgba(255,165,0,1)] ${isSelected ? 'bg-black' : 'bg-orange-500'}`} />
                   )}
                   <span className={`text-[16px] uppercase font-bold tracking-tighter ${isSelected ? 'text-black/60' : 'text-white/50'}`}>{format(date, 'eee', { locale: he })}</span>
                   <span className="text-2xl font-bold">{format(date, 'd')}</span>
-                  {!isOpen && <X className="absolute bottom-1 text-white/5 w-4 h-4 rotate-12" />}
+                  {(status === 'closed' || status === 'full') && <X className="absolute bottom-1 text-white/5 w-4 h-4 rotate-12" />}
                 </button>
               );
             })}
