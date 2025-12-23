@@ -95,6 +95,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     if (!state.currentUser) return;
+
     const listeners: Unsubscribe[] = [];
     const settingsRef = doc(db, "config", "business");
 
@@ -108,16 +109,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     }));
 
-    // Always listen to all bookings for real-time availability for all users
-    listeners.push(onSnapshot(collection(db, "bookings"), s => 
-        setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))
-    ));
-
     if (state.currentUser.role === UserRole.ADMIN) {
-      // Admin-specific listeners
-      listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
-      listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
-    } 
+        // Admin: listen to everything
+        listeners.push(onSnapshot(collection(db, "bookings"), s => 
+            setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))
+        ));
+        listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
+        listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
+    } else {
+        // Customer: listen to upcoming bookings for availability + their own bookings for their schedule
+        let upcomingBookings: Booking[] = [];
+        let myBookings: Booking[] = [];
+        const bookingsMap = new Map<string, Booking>();
+
+        const mergeAndSetState = () => {
+            bookingsMap.clear();
+            upcomingBookings.forEach(b => bookingsMap.set(b.id, b));
+            myBookings.forEach(b => bookingsMap.set(b.id, b));
+            setState(p => ({ ...p, bookings: Array.from(bookingsMap.values()) }));
+        };
+
+        const qUpcoming = query(collection(db, "bookings"), where("status", "==", BookingStatus.UPCOMING));
+        const unsubUpcoming = onSnapshot(qUpcoming, (snapshot) => {
+            upcomingBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Booking));
+            mergeAndSetState();
+        });
+
+        const qMy = query(collection(db, "bookings"), where("customerId", "==", state.currentUser.uid));
+        const unsubMy = onSnapshot(qMy, (snapshot) => {
+            myBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Booking));
+            mergeAndSetState();
+        });
+
+        listeners.push(unsubUpcoming, unsubMy);
+    }
 
     return () => listeners.forEach(unsub => unsub());
   }, [state.currentUser]);
@@ -237,13 +262,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addBooking = async (booking: Omit<Booking, 'id' | 'status' | 'createdAt' | 'customerId'>) => {
-    if (!state.currentUser) return { success: false, message: "You must be logged in to book." };
+    if (!state.currentUser) {
+      return { success: false, message: "You must be logged in to book." };
+    }
     try {
       const slotId = `${booking.date}_${booking.timeSlot}`;
-      await runTransaction(db, async (t) => {
-        const snap = await t.get(doc(db, "bookings", slotId));
-        if (snap.exists()) throw new Error("Slot already taken");
-        t.set(doc(db, "bookings", slotId), { ...booking, customerId: state.currentUser!.uid, status: BookingStatus.UPCOMING, createdAt: serverTimestamp() });
+      await runTransaction(db, async (transaction) => {
+        const bookingRef = doc(db, "bookings", slotId);
+        const bookingDoc = await transaction.get(bookingRef);
+        if (bookingDoc.exists() && bookingDoc.data().status !== BookingStatus.CANCELED) {
+          throw new Error("Slot already taken");
+        }
+        transaction.set(bookingRef, { 
+          ...booking, 
+          customerId: state.currentUser!.uid, 
+          status: BookingStatus.UPCOMING, 
+          createdAt: serverTimestamp() 
+        });
       });
       return { success: true, message: "Booking successful!" };
     } catch (error: any) {

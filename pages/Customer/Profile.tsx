@@ -63,7 +63,7 @@ const CustomerProfile: React.FC = () => {
 
   const getCancellationStatus = (booking: Booking) => {
     const apptDate = new Date(`${booking.date}T${booking.timeSlot}`);
-    const limitDate = subHours(apptDate, 24);
+    const limitDate = subHours(apptDate, 2);
     return isAfter(limitDate, new Date());
   };
 
@@ -166,7 +166,7 @@ const CustomerProfile: React.FC = () => {
                 <div className="space-y-2">
                   <h3 className="text-2xl font-serif font-bold text-white leading-tight">לא ניתן לבטל</h3>
                   <p className="text-white/40 text-sm leading-relaxed">
-                    מדיניות קפדנית: לא ניתן לנהל תורים פחות מ-<span className="text-gold font-bold">24 שעות</span> לפני המועד.
+                    מדיניות קפדנית: לא ניתן לנהל תורים פחות מ-<span className="text-gold font-bold">2 שעות</span> לפני המועד.
                   </p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-xs text-white/60 text-right">
@@ -304,7 +304,7 @@ const CustomerProfile: React.FC = () => {
       <div className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-start space-x-3 space-x-reverse">
         <Info className="text-gold w-4 h-4 mt-0.5 shrink-0" />
         <p className="text-[12px] text-white/40 leading-relaxed text-right">
-          <span className="text-gold font-bold">מדיניות:</span> ניתן לבטל או לשנות מועד עד 24 שעות לפני התור. ביטול מאוחר עלול לגרור חיוב בביקור הבא.
+          <span className="text-gold font-bold">מדיניות:</span> ניתן לבטל או לשנות מועד עד 2 שעות לפני התור. ביטול מאוחר עלול לגרור חיוב בביקור הבא.
         </p>
       </div>
     </div>

@@ -365,7 +365,7 @@ const BookingFlow: React.FC = () => {
           <div className="flex items-start gap-3 p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-300">
             <Info size={40} className="shrink-0 mt-0.5" />
             <p className="text-xs leading-relaxed">
-              <span className="font-bold">מדיניות ביטולים:</span> ניתן לבטל עד 24 שעות לפני מועד התור שנקבע.
+              <span className="font-bold">מדיניות ביטולים:</span> ניתן לבטל עד 2 שעות לפני מועד התור שנקבע.
             </p>
           </div>
 
