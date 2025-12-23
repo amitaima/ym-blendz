@@ -337,7 +337,7 @@ const BookingFlow: React.FC = () => {
           
           <div className="glass-card p-6 rounded-[2rem] border-gold/10 border space-y-3">
             <p className="text-base text-white/80"><span className="font-bold text-gold">{customerInfo.name}</span>, נא לאשר את הזמנתך לשעה <span className="font-bold text-gold">{selectedSlot}</span>.</p>
-            <p className="text-xs text-white/50">אישור יישלח למייל {customerInfo.email} ולנייד {customerInfo.phone}.</p>
+            {/* <p className="text-xs text-white/50">אישור יישלח למייל {customerInfo.email} ולנייד {customerInfo.phone}.</p> */}
           </div>
           
           <div className="glass-card p-6 rounded-[2.5rem] space-y-4 border-gold/10 border relative overflow-hidden shadow-2xl">

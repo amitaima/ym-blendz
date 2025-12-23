@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../store/AppContext';
 import GoldButton from '../../components/GoldButton';
 import { Mail, Lock, User, Phone, Scissors, ChevronLeft, Eye, EyeOff, Sparkles, Send, CheckCircle, ArrowRight } from 'lucide-react';
@@ -21,6 +21,14 @@ const AuthScreen: React.FC = () => {
     name: '',
     phone: ''
   });
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('hasVisitedBefore');
+    if (!hasVisited) {
+      setMode('signup');
+      localStorage.setItem('hasVisitedBefore', 'true');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
