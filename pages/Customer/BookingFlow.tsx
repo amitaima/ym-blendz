@@ -271,7 +271,7 @@ const BookingFlow: React.FC = () => {
                 <button
                   key={i}
                   onClick={() => status !== 'closed' && toggleDate(date)}
-                  disabled={status === 'closed' || status === 'full'}
+                  disabled={status === 'closed'}
                   className={`flex flex-col items-center justify-center py-4 rounded-[1.25rem] border transition-all duration-300 relative overflow-hidden
                     ${isSelected ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105 z-10' : 'glass-card text-white/80'}
                     ${status === 'available' && !isSelected ? 'border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' : ''}
