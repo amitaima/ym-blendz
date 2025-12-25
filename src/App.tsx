@@ -3,6 +3,7 @@ import React from 'react';
 import { HashRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from '../store/AppContext';
+import { ImageProvider } from '../store/ImageContext';
 import Layout from '../components/Layout';
 import { UserRole } from '../types';
 import { Loader } from 'lucide-react';
@@ -76,9 +77,11 @@ const AnimatedRoutes = () => {
 const App: React.FC = () => {
   return (
     <AppProvider>
+      <ImageProvider>
       <HashRouter>
         <AnimatedRoutes />
       </HashRouter>
+      </ImageProvider>
     </AppProvider>
   );
 };

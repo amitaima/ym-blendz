@@ -53,7 +53,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [state, setState] = useState<AppState>({
     bookings: [],
     expenses: [],
-    settings: { ...DEFAULT_SETTINGS, customAvailability: {} },
+    settings: { ...DEFAULT_SETTINGS, customAvailability: {}, homePageImages: [] },
     users: [],
     currentUser: undefined,
     waitlist: []
@@ -100,9 +100,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const settingsRef = doc(db, "config", "business");
 
     listeners.push(onSnapshot(settingsRef, async (docSnap) => {
-        const completeDefaultSettings = { ...DEFAULT_SETTINGS, customAvailability: {} };
+        const completeDefaultSettings = { ...DEFAULT_SETTINGS, customAvailability: {}, homePageImages: [] };
         if (docSnap.exists()) {
-            setState(prev => ({ ...prev, settings: { ...completeDefaultSettings, ...docSnap.data() } }));
+            const data = docSnap.data();
+            setState(prev => ({ ...prev, settings: { ...completeDefaultSettings, ...data, homePageImages: data.homePageImages || [] } }));
         } else if (state.currentUser?.role === UserRole.ADMIN) {
             await setDoc(settingsRef, completeDefaultSettings);
             setState(prev => ({ ...prev, settings: completeDefaultSettings }));
@@ -110,37 +111,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }));
 
     if (state.currentUser.role === UserRole.ADMIN) {
-        // Admin: listen to everything
         listeners.push(onSnapshot(collection(db, "bookings"), s => 
             setState(p => ({ ...p, bookings: s.docs.map(d => ({ id: d.id, ...d.data() } as Booking)) }))
         ));
         listeners.push(onSnapshot(collection(db, "expenses"), s => setState(p => ({ ...p, expenses: s.docs.map(d => ({ id: d.id, ...d.data() } as Expense)) }))));
         listeners.push(onSnapshot(collection(db, "waitlist"), s => setState(p => ({ ...p, waitlist: s.docs.map(d => ({ id: d.id, ...d.data() } as WaitlistRequest)) }))));
     } else {
-        // Customer: listen to upcoming bookings for availability + their own bookings for their schedule
         let upcomingBookings: Booking[] = [];
         let myBookings: Booking[] = [];
         const bookingsMap = new Map<string, Booking>();
-
         const mergeAndSetState = () => {
             bookingsMap.clear();
             upcomingBookings.forEach(b => bookingsMap.set(b.id, b));
             myBookings.forEach(b => bookingsMap.set(b.id, b));
             setState(p => ({ ...p, bookings: Array.from(bookingsMap.values()) }));
         };
-
         const qUpcoming = query(collection(db, "bookings"), where("status", "==", BookingStatus.UPCOMING));
         const unsubUpcoming = onSnapshot(qUpcoming, (snapshot) => {
             upcomingBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Booking));
             mergeAndSetState();
         });
-
         const qMy = query(collection(db, "bookings"), where("customerId", "==", state.currentUser.uid));
         const unsubMy = onSnapshot(qMy, (snapshot) => {
             myBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Booking));
             mergeAndSetState();
         });
-
         listeners.push(unsubUpcoming, unsubMy);
     }
 
@@ -153,13 +148,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
         await user.reload();
-
         if (pendingCredential && emailForLinking === email) {
             await linkWithCredential(user, pendingCredential);
             setPendingCredential(undefined);
             setEmailForLinking(undefined);
         }
-
         const userDocRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(userDocRef);
         const profile = docSnap.exists() ? docSnap.data() as Omit<UserProfile, 'uid'> : undefined;
@@ -167,7 +160,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (!user.emailVerified && profile?.role !== UserRole.ADMIN) {
             return { verified: false };
         }
-
         if (profile) {
             setState(prev => ({ ...prev, currentUser: { uid: user.uid, ...profile } }));
         } else {
@@ -181,9 +173,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             await setDoc(userDocRef, newProfile);
             setState(prev => ({ ...prev, currentUser: newProfile }));
         }
-        
         return { verified: true };
-
     } catch (error: any) {
         console.error("Login error:", error);
         setAuthError(error.message);
@@ -191,7 +181,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw error;
     }
 };
-
 
   const loginWithGoogle = async (): Promise<void> => {
     setAuthError(undefined);
@@ -303,7 +292,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const updateSettings = async (settings: Partial<BusinessSettings>): Promise<void> => {
-    await setDoc(doc(db, "config", "business"), settings, { merge: true });
+    try {
+      await setDoc(doc(db, "config", "business"), settings, { merge: true });
+    } catch (error: any) {
+      console.error("Failed to update settings:", error);
+      alert(`Error saving settings: ${error.message}`);
+      throw error;
+    }
   };
 
   const updateDayAvailability = async (date: string, blocks: TimeBlock[]): Promise<void> => {

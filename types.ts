@@ -45,6 +45,7 @@ export interface BusinessSettings {
   endTime: string; 
   slotDuration: number; // minutes
   pricePerCut: number;
+  homePageImages: string[];
   customAvailability: Record<string, TimeBlock[]>; // Key is YYYY-MM-DD. Empty/Missing = Closed.
 }
 

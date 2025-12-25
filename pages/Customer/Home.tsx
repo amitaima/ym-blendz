@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
@@ -7,55 +8,49 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
+import { useImages } from '../../store/ImageContext';
 
 
 const CustomerHome: React.FC = () => {
   const navigate = useNavigate();
   const { state } = useApp();
+  const { homePageImages } = useImages();
 
-  const sliderImages = [
-    '/images/haircut5.jpg',
-    '/images/haircut6.jpg',
-    '/images/haircut4.jpg',
-    '/images/haircut3.jpg',
-    '/images/haircut2.jpg',
-    '/images/haircut1.jpg',
-  ];
 
   return (
     <div className="px-6 py-8 space-y-8">
       {/* Hero Section */}
-      <Swiper
-        modules={[Pagination, Autoplay]}
-        observer={true}
-        observeParents={true}
-        spaceBetween={10}
-        slidesPerView={1.2}
-        centeredSlides={true}
-        loop={true}
-        autoplay={{
-          delay: 2000,
-          disableOnInteraction: false,
-        }}
-        pagination={{ clickable: true }}
-        className="h-64 rounded-3xl hero-swiper"
-        style={{
-          '--swiper-pagination-color': '#BF953F',
-          '--swiper-pagination-bullet-inactive-color': '#FFF',
-          '--swiper-pagination-bullet-inactive-opacity': '0.3',
-          '--swiper-pagination-bottom': '16px',
-        } as React.CSSProperties}
-      >
-        {sliderImages.map((imageUrl, index) => (
-          <SwiperSlide key={index} className="rounded-3xl overflow-hidden">
-            <img 
-              src={imageUrl}
-              alt={`Haircut inspiration ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      {homePageImages.filter(Boolean).length > 0 && (
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          observer={true}
+          observeParents={true}
+          spaceBetween={10}
+          slidesPerView={1.2}
+          centeredSlides={true}
+          loop={true}
+          autoplay={{
+            delay: 2500,
+            disableOnInteraction: false,
+          }}
+          pagination={{ clickable: true }}
+          className="h-64 rounded-3xl hero-swiper"
+          style={{
+            '--swiper-pagination-color': '#BF953F',
+            '--swiper-pagination-bullet-inactive-color': '#FFF',
+            '--swiper-pagination-bullet-inactive-opacity': '0.3',
+            '--swiper-pagination-bottom': '16px',
+          } as React.CSSProperties}
+        >
+          {homePageImages.map((url, i) =>
+            url ? (
+              <SwiperSlide key={i}>
+                <img src={url} className="w-full h-full object-cover" />
+              </SwiperSlide>
+            ) : null
+          )}
+        </Swiper>
+      )}
 
       {/* Info Cards */}
       <div className="grid grid-cols-2 gap-4">
@@ -91,7 +86,6 @@ const CustomerHome: React.FC = () => {
       {/* Quote */}
       <div className="text-center py-6 px-4" dir="ltr">
         <p className="font-en-serif font-bold italic text-white/30 text-lg">
-          {/* "תספורת היא רק תספורת, עד שאתה מקבל <span className="gold-text-gradient font-bold">בלנד.</span>" */}
           "Life is to short for even one bad hairday..."
         </p>
         <div className="w-1 h-1 bg-pinkAccent/40 rounded-full mx-auto mt-4 animate-pulse shadow-[0_0_8px_rgba(255,0,127,0.4)]"></div>
