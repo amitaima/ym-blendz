@@ -14,10 +14,12 @@ const CustomerHome: React.FC = () => {
   const { state } = useApp();
 
   const sliderImages = [
-    '/images/haircut1.jpg',
-    '/images/haircut2.jpg',
+    '/images/haircut5.jpg',
+    '/images/haircut6.jpg',
+    '/images/haircut4.jpg',
     '/images/haircut3.jpg',
-    '/images/haircut4.jpg'
+    '/images/haircut2.jpg',
+    '/images/haircut1.jpg',
   ];
 
   return (
