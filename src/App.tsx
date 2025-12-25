@@ -7,6 +7,10 @@ import Layout from '../components/Layout';
 import { UserRole } from '../types';
 import { Loader } from 'lucide-react';
 
+// Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+
 // Pages
 import CustomerHome from '../pages/Customer/Home';
 import BookingFlow from '../pages/Customer/BookingFlow';
