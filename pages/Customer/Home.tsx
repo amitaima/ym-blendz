@@ -86,7 +86,7 @@ const CustomerHome: React.FC = () => {
       {/* Quote */}
       <div className="text-center py-6 px-4" dir="ltr">
         <p className="font-en-serif font-bold italic text-white/30 text-lg">
-          "Life is to short for even one bad hairday..."
+          "Life is too short for even one bad hairday..."
         </p>
         <div className="w-1 h-1 bg-pinkAccent/40 rounded-full mx-auto mt-4 animate-pulse shadow-[0_0_8px_rgba(255,0,127,0.4)]"></div>
       </div>
