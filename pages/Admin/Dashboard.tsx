@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { useApp } from '../../store/AppContext';
 import { format, isToday, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Trash2 } from 'lucide-react';
-import { BookingStatus } from '../../types';
+import { BookingStatus, ShiftType } from '../../types'; // Import ShiftType
 
 const AdminDashboard: React.FC = () => {
   const { state, getFinancialStats, updateBookingStatus, deleteBooking } = useApp();
   const stats = getFinancialStats();
-  
+
   const todayBookings = state.bookings
     .filter(b => isToday(parseISO(b.date)))
     .sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
@@ -51,35 +50,39 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="space-y-3">
-          {todayBookings.length > 0 ? todayBookings.map(booking => (
-            <div key={booking.id} className="glass-card p-4 rounded-2xl border-white/5 border flex items-center justify-between">
-              <div className="flex items-center space-x-4 space-x-reverse">
-                <div className="bg-gold/10 p-3 rounded-xl border border-gold/20">
-                  <span className="font-bold text-gold text-sm">{booking.timeSlot}</span>
+          {todayBookings.length > 0 ? todayBookings.map(booking => {
+            const isSoldier = booking.shiftType === ShiftType.SOLDIER;
+            return (
+              <div key={booking.id} className={`glass-card p-4 rounded-2xl border-white/5 border flex items-center justify-between ${isSoldier ? 'bg-green-900/20' : ''}`}>
+                <div className="flex items-center space-x-4 space-x-reverse">
+                  <div className="bg-gold/10 p-3 rounded-xl border border-gold/20">
+                    <span className="font-bold text-gold text-sm">{booking.timeSlot}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-white">{booking.customerName}</h4>
+                    <p className="text-sm text-white/40">{booking.customerPhone}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">{booking.customerName}</h4>
-                  <p className="text-sm text-white/40">{booking.customerPhone}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 space-x-reverse">
-                {booking.status === BookingStatus.UPCOMING && (
-                  <button 
-                    onClick={() => updateBookingStatus(booking.id, BookingStatus.COMPLETED)}
-                    className="p-2 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 transition-all active:scale-90"
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  {isSoldier && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
+                  {booking.status === BookingStatus.UPCOMING && (
+                    <button
+                      onClick={() => updateBookingStatus(booking.id, BookingStatus.COMPLETED)}
+                      className="p-2 bg-green-500/10 text-green-500 rounded-lg border border-green-500/20 transition-all active:scale-90"
+                    >
+                      <CheckIcon size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteBooking(booking.id)}
+                    className="p-2 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 transition-all active:scale-90"
                   >
-                    <CheckIcon size={16} />
+                    <Trash2 size={16} />
                   </button>
-                )}
-                <button 
-                  onClick={() => deleteBooking(booking.id)}
-                  className="p-2 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 transition-all active:scale-90"
-                >
-                  <Trash2 size={16} />
-                </button>
+                </div>
               </div>
-            </div>
-          )) : (
+            )
+          }) : (
             <div className="py-12 text-center glass-card rounded-2xl border-dashed border-2 border-white/5 text-white/20 italic">
               יום שקט לפנינו.
             </div>
@@ -91,15 +94,21 @@ const AdminDashboard: React.FC = () => {
       <div className="space-y-4">
         <h3 className="font-serif font-bold text-xl gold-text-gradient">תספורות עתידיות</h3>
         <div className="space-y-3">
-          {upcomingBookings.map(b => (
-            <div key={b.id} className="flex items-center justify-between p-3 border-b border-white/5">
-              <div className="flex flex-col text-right">
-                <span className="text-sm font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
-                <span className="text-[14px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
+          {upcomingBookings.map(b => {
+            const isSoldier = b.shiftType === ShiftType.SOLDIER;
+            return (
+              <div key={b.id} className={`flex items-center justify-between p-3 border-b ${isSoldier ? 'border-green-500/10' : 'border-white/5'}`}>
+                <div className="flex flex-col text-right">
+                  <span className="text-sm font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
+                  <span className="text-[14px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isSoldier && <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">חייל</span>}
+                  <span className="text-[14px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
+                </div>
               </div>
-              <span className="text-[14px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { ChevronRight, Check, Calendar as CalendarIcon, Clock, BellRing, X, Spar
 import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { generateICS, createICSDataURI } from '../../utils/calendar';
-import { Booking } from '../../types';
+import { Booking, ShiftType } from '../../types';
 
 const BookingFlow: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ const BookingFlow: React.FC = () => {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedShiftType, setSelectedShiftType] = useState<ShiftType | null>(null);
   const [customerInfo, setCustomerInfo] = useState({ 
     name: state.currentUser?.name || '', 
     phone: state.currentUser?.phone || '',
@@ -55,7 +56,7 @@ const BookingFlow: React.FC = () => {
         return { date, status: 'closed' };
       }
 
-      const slots: string[] = [];
+      const slots: { time: string, shiftType: ShiftType }[] = [];
       const now = new Date();
       const slotDuration = state.settings.slotDuration;
 
@@ -72,7 +73,7 @@ const BookingFlow: React.FC = () => {
               b.status !== 'canceled'
             );
             if (!isBooked) {
-              slots.push(timeStr);
+              slots.push({ time: timeStr, shiftType: block.shiftType || ShiftType.REGULAR });
             }
           }
           current = addMinutes(current, slotDuration);
@@ -89,12 +90,13 @@ const BookingFlow: React.FC = () => {
   }, [dates, state.settings, state.bookings]);
 
   const timeSlots = useMemo(() => {
-    if (!selectedDate) return [];
-    const slots: string[] = [];
+    if (!selectedDate) return { regular: [], soldier: [] };
+    const regularSlots: string[] = [];
+    const soldierSlots: string[] = [];
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const blocks = state.settings.customAvailability?.[dateStr] || [];
     
-    if (blocks.length === 0) return [];
+    if (blocks.length === 0) return { regular: [], soldier: [] };
 
     const slotDuration = state.settings.slotDuration;
     const now = new Date();
@@ -111,24 +113,34 @@ const BookingFlow: React.FC = () => {
             b.timeSlot === timeStr && 
             b.status !== 'canceled'
           );
-          if (!isBooked) slots.push(timeStr);
+          if (!isBooked) {
+            if (block.shiftType === ShiftType.SOLDIER) {
+              soldierSlots.push(timeStr);
+            } else {
+              regularSlots.push(timeStr);
+            }
+          }
         }
         current = addMinutes(current, slotDuration);
       }
     });
 
-    return Array.from(new Set(slots)).sort();
+    return {
+      regular: Array.from(new Set(regularSlots)).sort(),
+      soldier: Array.from(new Set(soldierSlots)).sort(),
+    };
   }, [selectedDate, state.settings, state.bookings]);
 
   const handleComplete = async () => {
-    if (!selectedSlot || !selectedDate) return;
+    if (!selectedSlot || !selectedDate || !selectedShiftType) return;
     setIsBooking(true);
     try {
       const result = await addBooking({
         customerName: customerInfo.name,
         customerPhone: customerInfo.phone,
         date: format(selectedDate, 'yyyy-MM-dd'),
-        timeSlot: selectedSlot
+        timeSlot: selectedSlot,
+        shiftType: selectedShiftType
       });
 
       if (result.success) {
@@ -177,8 +189,9 @@ const BookingFlow: React.FC = () => {
     }
   };
   
-  const handleSlotSelection = (slot: string) => {
+  const handleSlotSelection = (slot: string, shiftType: ShiftType) => {
     setSelectedSlot(slot);
+    setSelectedShiftType(shiftType)
     setStep(3);
   };
 
@@ -317,17 +330,43 @@ const BookingFlow: React.FC = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-3">
-            {timeSlots.length > 0 ? timeSlots.map(slot => (
-              <button
-                key={slot}
-                onClick={() => handleSlotSelection(slot)}
-                className={`py-4 rounded-2xl border text-sm font-bold transition-all duration-300
-                  ${selectedSlot === slot ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105' : 'glass-card border-white/5 text-white/80 hover:border-gold/30'}`}
-              >
-                {slot}
-              </button>
-            )) : (
+          <div className="space-y-4">
+            {timeSlots.regular.length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                {timeSlots.regular.map(slot => (
+                  <button
+                    key={slot}
+                    onClick={() => handleSlotSelection(slot, ShiftType.REGULAR)}
+                    className={`py-4 rounded-2xl border text-sm font-bold transition-all duration-300
+                      ${selectedSlot === slot ? 'bg-gold text-black border-gold shadow-[0_0_15px_rgba(191,149,63,0.3)] scale-105' : 'glass-card border-white/5 text-white/80 hover:border-gold/30'}`}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            )}
+            {timeSlots.soldier.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/30 to-transparent"></div>
+                  <h4 className="text-center text-sm font-bold text-green-400 px-4">תור לחיילים</h4>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/30 to-transparent"></div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {timeSlots.soldier.map(slot => (
+                    <button
+                      key={slot}
+                      onClick={() => handleSlotSelection(slot, ShiftType.SOLDIER)}
+                      className={`py-4 rounded-2xl border text-sm font-bold transition-all duration-300
+                        ${selectedSlot === slot ? 'bg-green-500 text-black border-green-700 shadow-[0_0_15px_rgba(34,197,94,0.3)] scale-105' : 'glass-card border-green-500/20 text-green-400 hover:border-green-500/30'}`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {timeSlots.regular.length === 0 && timeSlots.soldier.length === 0 && (
               <div className="col-span-3 py-10 text-center space-y-6">
                 <div className="glass-card p-8 rounded-[2.5rem] border-gold/20 space-y-5 shadow-2xl">
                   <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto border border-gold/20">
@@ -352,15 +391,6 @@ const BookingFlow: React.FC = () => {
                     >
                       בהמשך...
                     </GoldButton>
-                    // <GoldButton 
-                    //   fullWidth 
-                    //   variant="gold" 
-                    //   className="py-4"
-                    //   onClick={handleWaitlist}
-                    //   disabled={waitlistStatus === 'pending'}
-                    // >
-                    //   {waitlistStatus === 'pending' ? 'שולח בקשה...' : 'הודע לי (SMS)'}
-                    // </GoldButton>
                   )}
                 </div>
               </div>
@@ -381,7 +411,6 @@ const BookingFlow: React.FC = () => {
           
           <div className="glass-card p-6 rounded-[2rem] border-gold/10 border space-y-3">
             <p className="text-base text-white/80"><span className="font-bold text-gold">{customerInfo.name}</span>, נא לאשר את הזמנתך לשעה <span className="font-bold text-gold">{selectedSlot}</span>.</p>
-            {/* <p className="text-xs text-white/50">אישור יישלח למייל {customerInfo.email} ולנייד {customerInfo.phone}.</p> */}
           </div>
           
           <div className="glass-card p-6 rounded-[2.5rem] space-y-4 border-gold/10 border relative overflow-hidden shadow-2xl">

@@ -1,3 +1,8 @@
+export enum ShiftType {
+  REGULAR = 'regular',
+  SOLDIER = 'soldier'
+}
+
 export enum BookingStatus {
   UPCOMING = 'upcoming',
   COMPLETED = 'completed',
@@ -18,6 +23,7 @@ export interface Booking {
   timeSlot: string; // HH:mm
   status: BookingStatus;
   createdAt: number;
+  shiftType?: ShiftType;
 }
 
 export interface Expense {
@@ -30,6 +36,7 @@ export interface Expense {
 export interface TimeBlock {
   start: string;
   end: string;
+  shiftType?: ShiftType;
 }
 
 export interface WaitlistRequest {

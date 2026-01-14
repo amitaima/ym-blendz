@@ -4,7 +4,7 @@ import { useApp } from '../../store/AppContext';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, startOfToday, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Phone, Clock, User, Trash2, Plus, Briefcase, AlertCircle, AlertTriangle, Send, X } from 'lucide-react';
-import { BookingStatus, Booking } from '../../types';
+import { BookingStatus, Booking, ShiftType } from '../../types';
 import GoldButton from '../../components/GoldButton';
 
 const AdminBookings: React.FC = () => {
@@ -18,6 +18,7 @@ const AdminBookings: React.FC = () => {
 
   const [startTime, setStartTime] = useState({ hour: '09', min: '00' });
   const [endTime, setEndTime] = useState({ hour: '12', min: '00' });
+  const [shiftType, setShiftType] = useState<ShiftType>(ShiftType.REGULAR);
 
   const formattedSelectedDay = selectedDay ? format(selectedDay, 'yyyy-MM-dd') : '';
   const currentBlocks = selectedDay ? (state.settings.customAvailability?.[formattedSelectedDay] || []) : [];
@@ -47,7 +48,8 @@ const AdminBookings: React.FC = () => {
       return;
     }
 
-    const updated = [...currentBlocks, { start: startStr, end: endStr }].sort((a, b) => a.start.localeCompare(b.start));
+    const newBlock = { start: startStr, end: endStr, shiftType };
+    const updated = [...currentBlocks, newBlock].sort((a, b) => a.start.localeCompare(b.start));
     updateDayAvailability(formattedSelectedDay, updated);
     setIsAddingShift(false);
   };
@@ -148,7 +150,6 @@ const AdminBookings: React.FC = () => {
         {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((d, i) => (
           <div key={i} className="text-center text-[12px] font-bold text-white/30 py-2">{d}</div>
         ))}
-        {/* {Array.from({ length: 6 - getDay(endOfMonth(viewDate)) }).map((_, i) => <div key={`empty-end-${i}`} />)} */}
         {Array.from({ length: getDay(daysInMonth[0]) }).map((_, i) => (
           <div key={`empty-${i}`} />
         ))}
@@ -179,7 +180,6 @@ const AdminBookings: React.FC = () => {
             </button>
           );
         })}
-        {Array.from({ length: getDay(startOfMonth(viewDate)) }).map((_, i) => <div key={`empty-start-${i}`} />)}
       </div>
 
       <div className="glass-card p-6 rounded-[2.5rem] border-gold/10 border space-y-2 shadow-2xl relative overflow-hidden min-h-[120px] flex flex-col justify-center">
@@ -214,16 +214,19 @@ const AdminBookings: React.FC = () => {
               {!isClosed && (
                 <div className="grid grid-cols-1 gap-2">
                   {currentBlocks.map((block, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10 group hover:border-gold/30 transition-all">
+                    <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border group hover:border-gold/30 transition-all ${block.shiftType === ShiftType.SOLDIER ? 'bg-green-900/20 border-green-500/20' : 'bg-white/5 border-white/10'}`}>
                       <div className="flex items-center space-x-4 space-x-reverse">
                         <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-gold">
                           <Clock size={14} />
                         </div>
                         <span className="font-bold text-sm tracking-tight">{block.start} <span className="text-white/20 mx-1">←</span> {block.end}</span>
                       </div>
-                      <button onClick={() => handleRemoveBlockRequest(idx)} className="p-2 text-white/20 hover:text-red-500 transition-colors">
-                        <X size={18} />
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {block.shiftType === ShiftType.SOLDIER && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
+                        <button onClick={() => handleRemoveBlockRequest(idx)} className="p-2 text-white/20 hover:text-red-500 transition-colors">
+                          <X size={18} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -239,7 +242,10 @@ const AdminBookings: React.FC = () => {
             {isAddingShift && (
               <div className="space-y-5 pt-4 border-t border-white/5 animate-in slide-in-from-top-4 duration-300">
                 <div className="bg-white/5 p-5 rounded-3xl border border-gold/20 space-y-6">
-                  <p className="text-[12px] uppercase font-bold text-gold tracking-widest text-center">הגדר משמרת חדשה</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => setShiftType(ShiftType.REGULAR)} className={`py-3 rounded-lg ${shiftType === ShiftType.REGULAR ? 'bg-gold text-black' : 'bg-black'}`}>רגיל</button>
+                    <button onClick={() => setShiftType(ShiftType.SOLDIER)} className={`py-3 rounded-lg ${shiftType === ShiftType.SOLDIER ? 'bg-gold text-black' : 'bg-black'}`}>חיילים</button>
+                  </div>
                   <div className="flex items-center justify-center gap-4 flex-row-reverse">
                     <div className="flex-1 space-y-2">
                       <p className="text-[12px] uppercase font-bold text-white/30 text-center tracking-tighter">שעת סיום</p>
@@ -288,7 +294,7 @@ const AdminBookings: React.FC = () => {
         </h3>
         <div className="space-y-3">
           {selectedDayBookings.length > 0 ? selectedDayBookings.map(booking => (
-            <div key={booking.id} className="glass-card p-5 rounded-3xl border-white/10 border space-y-4 shadow-lg hover:border-gold/20 transition-all">
+            <div key={booking.id} className={`p-5 rounded-3xl border space-y-4 shadow-lg hover:border-gold/20 transition-all ${booking.shiftType === ShiftType.SOLDIER ? 'bg-green-900/20 border-green-500/20' : 'glass-card border-white/10'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 space-x-reverse">
                   <div className="bg-gold/10 p-2.5 rounded-xl border border-gold/20">
@@ -297,6 +303,7 @@ const AdminBookings: React.FC = () => {
                   <span className="font-bold text-gold tracking-tight">{booking.timeSlot}</span>
                 </div>
                  <div className="flex items-center space-x-2 space-x-reverse">
+                  {booking.shiftType === ShiftType.SOLDIER && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
                   <span className={`text-[12px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border ${
                     booking.status === BookingStatus.CANCELED ? 'bg-red-500/10 border-red-500/20 text-red-500' : 
                     booking.status === BookingStatus.COMPLETED ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-gold/10 border-gold/20 text-gold'
