@@ -349,7 +349,7 @@ const BookingFlow: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-center">
                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/30 to-transparent"></div>
-                  <h4 className="text-center text-sm font-bold text-green-400 px-4">תור לחיילים</h4>
+                  <h4 className="text-center text-sm font-bold text-green-400 px-4">תורי חיילים</h4>
                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-500/30 to-transparent"></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
