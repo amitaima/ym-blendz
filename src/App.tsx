@@ -22,6 +22,7 @@ import AdminBookings from '../pages/Admin/Bookings';
 import AdminSettings from '../pages/Admin/Settings';
 import AuthScreen from '../pages/Auth/AuthScreen';
 import AdminGuard from '../pages/Admin/AdminGuard';
+import VerifyEmailScreen from '../pages/Auth/VerifyEmailScreen';
 
 const AnimatedRoutes = () => {
   const { state, loading } = useApp();
@@ -42,7 +43,15 @@ const AnimatedRoutes = () => {
   }
 
   if (!state.currentUser) {
-    return <AuthScreen />;
+    return (
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/auth" element={<AuthScreen />} />
+          <Route path="/verify-email" element={<VerifyEmailScreen />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </AnimatePresence>
+    );
   }
 
   const isAdmin = state.currentUser.role === UserRole.ADMIN;
@@ -53,6 +62,7 @@ const AnimatedRoutes = () => {
         <Routes location={location} key={location.pathname}>
           {isAdmin ? (
             <>
+              {/* Admin Routes */}
               <Route path="/admin" element={<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}><AdminGuard><AdminDashboard /></AdminGuard></motion.div>} />
               <Route path="/admin/bookings" element={<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}><AdminGuard><AdminBookings /></AdminGuard></motion.div>} />
               <Route path="/admin/finance" element={<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}><AdminGuard><AdminFinance /></AdminGuard></motion.div>} />
@@ -64,7 +74,7 @@ const AnimatedRoutes = () => {
               {/* Customer Routes */}
               <Route path="/" element={<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}><CustomerHome /></motion.div>} />
               <Route path="/book" element={<motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}><BookingFlow /></motion.div>} />
-              <Route path="/profile" element={<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}><CustomerProfile /></motion.div>} />
+              <Route path="/profile" element={<motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration:.3 }}><CustomerProfile /></motion.div>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           )}

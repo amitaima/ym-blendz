@@ -212,7 +212,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw new Error("An account with this email already exists.");
       }
       const cred = await createUserWithEmailAndPassword(auth, profile.email, profile.password);
-      await sendEmailVerification(cred.user);
+      const actionCodeSettings = {
+        url: 'https://ym-blendz.web.app/verify-email',
+        handleCodeInApp: true,
+      };
+      await sendEmailVerification(cred.user, actionCodeSettings);
       const newUserProfile: Omit<UserProfile, 'uid'> = {
         name: profile.name,
         email: profile.email,
@@ -235,7 +239,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const resendVerificationEmail = async (): Promise<void> => {
     const user = auth.currentUser;
     if (user) {
-      await sendEmailVerification(user);
+      const actionCodeSettings = {
+        url: 'https://ym-blendz.web.app/auth',
+        handleCodeInApp: true,
+      };
+      await sendEmailVerification(user, actionCodeSettings);
     } else {
       throw new Error("No user is currently signed in to resend verification email.");
     }
