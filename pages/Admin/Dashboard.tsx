@@ -3,7 +3,8 @@ import { useApp } from '../../store/AppContext';
 import { format, isToday, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Trash2 } from 'lucide-react';
-import { BookingStatus, ShiftType } from '../../types'; // Import ShiftType
+import { BookingStatus, ShiftType } from '../../types';
+import { getBarberName, getBarberPrice } from '../../constants';
 
 const AdminDashboard: React.FC = () => {
   const { state, getFinancialStats, updateBookingStatus, deleteBooking } = useApp();
@@ -15,10 +16,15 @@ const AdminDashboard: React.FC = () => {
 
   const todayRevenue = todayBookings
     .filter(b => b.status === BookingStatus.COMPLETED)
-    .length * state.settings.pricePerCut;
+    .reduce((sum, b) => sum + (typeof b.price === 'number' ? b.price : getBarberPrice(state.settings, b.barberId)), 0);
 
+  const now = new Date();
   const upcomingBookings = state.bookings
-    .filter(b => b.status === BookingStatus.UPCOMING && !isToday(parseISO(b.date)))
+    .filter(b => {
+      if (b.status !== BookingStatus.UPCOMING) return false;
+      const bookingDateTime = new Date(`${b.date}T${b.timeSlot}`);
+      return bookingDateTime.getTime() > now.getTime() && !isToday(parseISO(b.date));
+    })
     .sort((a, b) => new Date(`${a.date}T${a.timeSlot}`).getTime() - new Date(`${b.date}T${b.timeSlot}`).getTime())
     .slice(0, 5);
 
@@ -64,7 +70,14 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2 space-x-reverse">
-                  {isSoldier && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${
+                    booking.barberId === 'dvir'
+                      ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                      : 'bg-gold/15 text-gold border-gold/30'
+                  }`}>
+                    {booking.barberName || (booking.barberId === 'dvir' ? 'דביר' : 'יואב')}
+                  </span>
+                  {isSoldier && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">חיילים</span>}
                   {booking.status === BookingStatus.UPCOMING && (
                     <button
                       onClick={() => updateBookingStatus(booking.id, BookingStatus.COMPLETED)}
@@ -94,21 +107,34 @@ const AdminDashboard: React.FC = () => {
       <div className="space-y-4">
         <h3 className="font-serif font-bold text-xl gold-text-gradient">תספורות עתידיות</h3>
         <div className="space-y-3">
-          {upcomingBookings.map(b => {
-            const isSoldier = b.shiftType === ShiftType.SOLDIER;
-            return (
-              <div key={b.id} className={`flex items-center justify-between p-3 border-b ${isSoldier ? 'border-green-500/10' : 'border-white/5'}`}>
-                <div className="flex flex-col text-right">
-                  <span className="text-sm font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
-                  <span className="text-[14px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
+          {upcomingBookings.length > 0 ? (
+            upcomingBookings.map(b => {
+              const isSoldier = b.shiftType === ShiftType.SOLDIER;
+              return (
+                <div key={b.id} className={`flex items-center justify-between p-3 border-b ${isSoldier ? 'border-green-500/10' : 'border-white/5'}`}>
+                  <div className="flex flex-col text-right">
+                    <span className="text-sm font-bold text-white">{format(parseISO(b.date), 'EEE, d בMMM', { locale: he })}</span>
+                    <span className="text-[14px] text-white/40 uppercase tracking-tighter">{b.timeSlot} — {b.customerName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${
+                      b.barberId === 'dvir'
+                        ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                        : 'bg-gold/15 text-gold border-gold/30'
+                    }`}>
+                      {b.barberName || (b.barberId === 'dvir' ? 'דביר' : 'יואב')}
+                    </span>
+                    {isSoldier && <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">חייל</span>}
+                    <span className="text-[12px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {isSoldier && <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">חייל</span>}
-                  <span className="text-[14px] px-2 py-0.5 bg-gold/10 text-gold rounded-full border border-gold/20 font-bold uppercase">קרוב</span>
-                </div>
-              </div>
-            )
-          })}
+              );
+            })
+          ) : (
+            <div className="py-8 text-center glass-card rounded-2xl border border-white/5 text-white/30 text-xs italic">
+              אין תספורות עתידיות נוספות כרגע.
+            </div>
+          )}
         </div>
       </div>
     </div>

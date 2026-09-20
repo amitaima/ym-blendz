@@ -8,6 +8,7 @@ import { format, isAfter, subHours, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { BookingStatus, Booking } from '../../types';
 import { generateICS, createICSDataURI } from '../../utils/calendar';
+import { getBarberName, getBarberPrice } from '../../constants';
 
 const CustomerProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -251,8 +252,17 @@ const CustomerProfile: React.FC = () => {
                     </GoldButton>
                   </div>
                   <div className="text-right">
-                      <span className="text-[14px] text-white/30 uppercase font-bold tracking-widest">מחיר</span>
-                      <span className="text-base font-bold text-gold block">₪{state.settings.pricePerCut}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border block mb-1 ${
+                        b.barberId === 'dvir'
+                          ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                          : 'bg-gold/15 text-gold border-gold/30'
+                      }`}>
+                        {b.barberName || (b.barberId === 'dvir' ? 'דביר חניה' : 'יואב מלכה')}
+                      </span>
+                      <span className="text-[12px] text-white/30 uppercase font-bold tracking-widest">מחיר</span>
+                      <span className="text-base font-bold text-gold block">
+                        ₪{typeof b.price === 'number' ? b.price : getBarberPrice(state.settings, b.barberId)}
+                      </span>
                   </div>
                 </div>
               </div>
@@ -280,10 +290,14 @@ const CustomerProfile: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-white">{format(parseISO(b.date), 'd MMM, yyyy', { locale: he })}</p>
-                    <p className="text-[14px] text-white/40 uppercase tracking-tighter font-bold">{b.status === 'completed' ? 'הושלם' : 'בוטל'}</p>
+                    <p className="text-[12px] text-white/40 tracking-tighter font-medium">
+                      {b.status === 'completed' ? 'הושלם' : 'בוטל'} • {b.barberName || (b.barberId === 'dvir' ? 'דביר' : 'יואב')}
+                    </p>
                   </div>
                 </div>
-                <span className="text-[14px] font-bold text-white/20">₪{state.settings.pricePerCut}</span>
+                <span className="text-[14px] font-bold text-white/40">
+                  ₪{typeof b.price === 'number' ? b.price : getBarberPrice(state.settings, b.barberId)}
+                </span>
               </div>
             ))}
             {history.length > visibleHistoryCount && (

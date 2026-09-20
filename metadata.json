@@ -7,6 +7,8 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#BF953F",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
   "icons": [
     {
       "src": "https://picsum.photos/192/192",

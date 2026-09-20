@@ -3,8 +3,9 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../store/AppContext';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, addMonths, subMonths, startOfToday, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Phone, Clock, User, Trash2, Plus, Briefcase, AlertCircle, AlertTriangle, Send, X } from 'lucide-react';
-import { BookingStatus, Booking, ShiftType } from '../../types';
+import { ChevronLeft, ChevronRight, Phone, Clock, User, Trash2, Plus, Briefcase, AlertCircle, AlertTriangle, Send, X, Scissors, UserCheck } from 'lucide-react';
+import { BookingStatus, Booking, ShiftType, BarberId, TimeBlock } from '../../types';
+import { getBarberName, getBarberPrice } from '../../constants';
 import GoldButton from '../../components/GoldButton';
 
 const AdminBookings: React.FC = () => {
@@ -16,6 +17,7 @@ const AdminBookings: React.FC = () => {
   const [shiftToDeleteIndex, setShiftToDeleteIndex] = useState<number | null>(null);
   const [conflictedBookings, setConflictedBookings] = useState<Booking[]>([]);
 
+  const [selectedBarber, setSelectedBarber] = useState<BarberId>('yoav');
   const [startTime, setStartTime] = useState({ hour: '09', min: '00' });
   const [endTime, setEndTime] = useState({ hour: '12', min: '00' });
   const [shiftType, setShiftType] = useState<ShiftType>(ShiftType.REGULAR);
@@ -48,7 +50,14 @@ const AdminBookings: React.FC = () => {
       return;
     }
 
-    const newBlock = { start: startStr, end: endStr, shiftType };
+    const barberName = getBarberName(selectedBarber);
+    const newBlock: TimeBlock = { 
+      start: startStr, 
+      end: endStr, 
+      shiftType, 
+      barberId: selectedBarber,
+      barberName
+    };
     const updated = [...currentBlocks, newBlock].sort((a, b) => a.start.localeCompare(b.start));
     updateDayAvailability(formattedSelectedDay, updated);
     setIsAddingShift(false);
@@ -56,8 +65,10 @@ const AdminBookings: React.FC = () => {
 
   const handleRemoveBlockRequest = (index: number) => {
     const blockToRemove = currentBlocks[index];
+    const targetBarber = blockToRemove.barberId || 'yoav';
     const conflicts = selectedDayBookings.filter(b => 
       b.status !== BookingStatus.CANCELED &&
+      (b.barberId || 'yoav') === targetBarber &&
       b.timeSlot >= blockToRemove.start &&
       b.timeSlot < blockToRemove.end
     );
@@ -216,12 +227,17 @@ const AdminBookings: React.FC = () => {
                   {currentBlocks.map((block, idx) => (
                     <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border group hover:border-gold/30 transition-all ${block.shiftType === ShiftType.SOLDIER ? 'bg-green-900/20 border-green-500/20' : 'bg-white/5 border-white/10'}`}>
                       <div className="flex items-center space-x-4 space-x-reverse">
-                        <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-gold">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${block.barberId === 'dvir' ? 'bg-sky-500/15 text-sky-400' : 'bg-gold/10 text-gold'}`}>
                           <Clock size={14} />
                         </div>
-                        <span className="font-bold text-sm tracking-tight">{block.start} <span className="text-white/20 mx-1">←</span> {block.end}</span>
+                        <div>
+                          <span className="font-bold text-sm tracking-tight block">{block.start} <span className="text-white/20 mx-1">←</span> {block.end}</span>
+                          <span className={`text-[11px] font-bold ${block.barberId === 'dvir' ? 'text-sky-400' : 'text-gold'}`}>
+                            {block.barberName || (block.barberId === 'dvir' ? 'דביר חניה' : 'יואב מלכה')}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 space-x-reverse">
                         {block.shiftType === ShiftType.SOLDIER && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
                         <button onClick={() => handleRemoveBlockRequest(idx)} className="p-2 text-white/20 hover:text-red-500 transition-colors">
                           <X size={18} />
@@ -241,10 +257,40 @@ const AdminBookings: React.FC = () => {
 
             {isAddingShift && (
               <div className="space-y-5 pt-4 border-t border-white/5 animate-in slide-in-from-top-4 duration-300">
-                <div className="bg-white/5 p-5 rounded-3xl border border-gold/20 space-y-6">
+                <div className="bg-white/5 p-5 rounded-3xl border border-gold/20 space-y-5">
+                  <div className="space-y-2">
+                    <p className="text-[12px] uppercase font-bold text-white/40 tracking-wider text-right">בחר ספר למשמרת:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => setSelectedBarber('yoav')} 
+                        className={`py-3 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
+                          selectedBarber === 'yoav' 
+                            ? 'bg-gold text-black border-gold shadow-[0_0_12px_rgba(191,149,63,0.3)]' 
+                            : 'bg-black text-white/70 border-white/10 hover:border-gold/30'
+                        }`}
+                      >
+                        <Scissors size={14} />
+                        <span>יואב מלכה (ספר ראשי)</span>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setSelectedBarber('dvir')} 
+                        className={`py-3 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all border ${
+                          selectedBarber === 'dvir' 
+                            ? 'bg-sky-500 text-black border-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.3)]' 
+                            : 'bg-black text-white/70 border-white/10 hover:border-sky-400/30'
+                        }`}
+                      >
+                        <Scissors size={14} />
+                        <span>דביר חניה (ספר משני)</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setShiftType(ShiftType.REGULAR)} className={`py-3 rounded-lg ${shiftType === ShiftType.REGULAR ? 'bg-gold text-black' : 'bg-black'}`}>רגיל</button>
-                    <button onClick={() => setShiftType(ShiftType.SOLDIER)} className={`py-3 rounded-lg ${shiftType === ShiftType.SOLDIER ? 'bg-gold text-black' : 'bg-black'}`}>חיילים</button>
+                    <button onClick={() => setShiftType(ShiftType.REGULAR)} className={`py-3 rounded-lg font-bold text-xs ${shiftType === ShiftType.REGULAR ? 'bg-gold text-black' : 'bg-black text-white/60 border border-white/10'}`}>רגיל</button>
+                    <button onClick={() => setShiftType(ShiftType.SOLDIER)} className={`py-3 rounded-lg font-bold text-xs ${shiftType === ShiftType.SOLDIER ? 'bg-gold text-black' : 'bg-black text-white/60 border border-white/10'}`}>חיילים</button>
                   </div>
                   <div className="flex items-center justify-center gap-4 flex-row-reverse">
                     <div className="flex-1 space-y-2">
@@ -303,7 +349,17 @@ const AdminBookings: React.FC = () => {
                   <span className="font-bold text-gold tracking-tight">{booking.timeSlot}</span>
                 </div>
                  <div className="flex items-center space-x-2 space-x-reverse">
-                  {booking.shiftType === ShiftType.SOLDIER && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">תור חיילים</span>}
+                  <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold border ${
+                    booking.barberId === 'dvir' 
+                      ? 'bg-sky-500/15 text-sky-400 border-sky-500/30' 
+                      : 'bg-gold/15 text-gold border-gold/30'
+                  }`}>
+                    {booking.barberName || (booking.barberId === 'dvir' ? 'דביר חניה' : 'יואב מלכה')}
+                  </span>
+                  <span className="text-[12px] font-bold text-white/70">
+                    ₪{booking.price || getBarberPrice(state.settings, booking.barberId)}
+                  </span>
+                  {booking.shiftType === ShiftType.SOLDIER && <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">חיילים</span>}
                   <span className={`text-[12px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border ${
                     booking.status === BookingStatus.CANCELED ? 'bg-red-500/10 border-red-500/20 text-red-500' : 
                     booking.status === BookingStatus.COMPLETED ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-gold/10 border-gold/20 text-gold'

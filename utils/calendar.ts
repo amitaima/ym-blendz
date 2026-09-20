@@ -1,6 +1,7 @@
 
 import { Booking, BusinessSettings } from '../types';
 import { format, addMinutes } from 'date-fns';
+import { getBarberName } from '../constants';
 
 const formatUTC = (d: Date) => format(d, "yyyyMMdd'T'HHmmss'Z'");
 const formatTimeZone = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
@@ -8,6 +9,7 @@ const formatTimeZone = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
 export const generateICS = (booking: Booking, settings: BusinessSettings) => {
   const { date, timeSlot } = booking;
   const { slotDuration } = settings;
+  const barberName = booking.barberName || getBarberName(booking.barberId);
 
   const startDateTime = new Date(`${date}T${timeSlot}`);
   const endDateTime = addMinutes(startDateTime, slotDuration);
@@ -16,15 +18,15 @@ export const generateICS = (booking: Booking, settings: BusinessSettings) => {
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//YourAppName//NONSGML v1.0//EN',
+    'PRODID:-//YMBlendz//NONSGML v1.0//EN',
     'BEGIN:VEVENT',
-    `UID:${booking.id}@${window.location.hostname}`,
+    `UID:${booking.id || Date.now()}@${typeof window !== 'undefined' ? window.location.hostname : 'ymblendz.app'}`,
     `DTSTAMP:${formatUTC(new Date())}`,
     `DTSTART;TZID=${tz}:${formatTimeZone(startDateTime)}`,
     `DTEND;TZID=${tz}:${formatTimeZone(endDateTime)}`,
-    'SUMMARY:תספורת אצל יואב',
+    `SUMMARY:תספורת אצל ${barberName}`,
     'LOCATION:מורשת, לבונה 294',
-    'DESCRIPTION:התספורת הבאה שלך',
+    `DESCRIPTION:תספורת שנקבעה אצל ${barberName} ב-YM Blendz`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');
@@ -39,21 +41,20 @@ export const createICSDataURI = (icsContent: string) => {
 export const generateGoogleCalendarLink = (booking: Booking, settings: BusinessSettings): string => {
   const { date, timeSlot } = booking;
   const { slotDuration } = settings;
+  const barberName = booking.barberName || getBarberName(booking.barberId);
 
-  // Google Calendar links work best with UTC times.
-  // The initial Date object is created in the client's local timezone.
-  // formatUTC correctly converts it to a UTC string for the link.
   const startDateTime = new Date(`${date}T${timeSlot}`);
   const endDateTime = addMinutes(startDateTime, slotDuration);
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',
-    text: 'Haircut with Yoav Malka',
+    text: `תספורת אצל ${barberName} - YM Blendz`,
     dates: `${formatUTC(startDateTime)}/${formatUTC(endDateTime)}`,
-    details: 'Your upcoming haircut appointment.',
-    location: 'Moreshet, Levona 294',
-    ctz: 'Asia/Jerusalem' // Adding the timezone hint for Google
+    details: `תור לתספורת אצל ${barberName}`,
+    location: 'מורשת, לבונה 294',
+    ctz: 'Asia/Jerusalem'
   });
 
   return `https://www.google.com/calendar/render?${params.toString()}`;
 };
+

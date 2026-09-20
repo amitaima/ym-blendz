@@ -14,6 +14,16 @@ export enum UserRole {
   CUSTOMER = 'customer'
 }
 
+export type BarberId = 'yoav' | 'dvir';
+
+export interface BarberConfig {
+  id: BarberId;
+  name: string;
+  price: number;
+  role?: 'main' | 'secondary';
+  yoavCommission?: number;
+}
+
 export interface Booking {
   id: string;
   customerId: string; // Add this line
@@ -24,6 +34,9 @@ export interface Booking {
   status: BookingStatus;
   createdAt: number;
   shiftType?: ShiftType;
+  barberId?: BarberId;
+  barberName?: string;
+  price?: number;
 }
 
 export interface Expense {
@@ -37,6 +50,8 @@ export interface TimeBlock {
   start: string;
   end: string;
   shiftType?: ShiftType;
+  barberId?: BarberId;
+  barberName?: string;
 }
 
 export interface WaitlistRequest {
@@ -52,6 +67,12 @@ export interface BusinessSettings {
   endTime: string; 
   slotDuration: number; // minutes
   pricePerCut: number;
+  dvirYoavCommission?: number;
+  barbers?: {
+    yoav?: BarberConfig;
+    dvir?: BarberConfig;
+    [key: string]: BarberConfig | undefined;
+  };
   homePageImages: string[];
   customAvailability: Record<string, TimeBlock[]>; // Key is YYYY-MM-DD. Empty/Missing = Closed.
 }
