@@ -1,14 +1,14 @@
 
 import { Booking, BusinessSettings } from '../types';
 import { format, addMinutes } from 'date-fns';
-import { getBarberName } from '../constants';
+import { getBarberName, getBarberSlotDuration } from '../constants';
 
 const formatUTC = (d: Date) => format(d, "yyyyMMdd'T'HHmmss'Z'");
 const formatTimeZone = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
 
 export const generateICS = (booking: Booking, settings: BusinessSettings) => {
   const { date, timeSlot } = booking;
-  const { slotDuration } = settings;
+  const slotDuration = getBarberSlotDuration(settings, booking.barberId);
   const barberName = booking.barberName || getBarberName(booking.barberId);
 
   const startDateTime = new Date(`${date}T${timeSlot}`);
@@ -40,7 +40,7 @@ export const createICSDataURI = (icsContent: string) => {
 
 export const generateGoogleCalendarLink = (booking: Booking, settings: BusinessSettings): string => {
   const { date, timeSlot } = booking;
-  const { slotDuration } = settings;
+  const slotDuration = getBarberSlotDuration(settings, booking.barberId);
   const barberName = booking.barberName || getBarberName(booking.barberId);
 
   const startDateTime = new Date(`${date}T${timeSlot}`);

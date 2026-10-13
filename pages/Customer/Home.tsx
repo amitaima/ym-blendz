@@ -9,7 +9,7 @@ import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { useImages } from '../../store/ImageContext';
-import { getBarberPrice } from '../../constants';
+import { getBarberPrice, getBarberSlotDuration } from '../../constants';
 
 
 const CustomerHome: React.FC = () => {
@@ -19,6 +19,8 @@ const CustomerHome: React.FC = () => {
 
   const yoavPrice = getBarberPrice(state.settings, 'yoav');
   const dvirPrice = getBarberPrice(state.settings, 'dvir');
+  const yoavDuration = getBarberSlotDuration(state.settings, 'yoav');
+  const dvirDuration = getBarberSlotDuration(state.settings, 'dvir');
 
 
   return (
@@ -66,10 +68,13 @@ const CustomerHome: React.FC = () => {
             <span className="text-xs text-white/90 font-bold">דביר <span className="text-sky-400">₪{dvirPrice}</span></span>
           </div>
         </div>
-        <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-2 border-gold/10 border shadow-lg">
+        <div className="glass-card p-4 rounded-2xl flex flex-col items-center text-center space-y-1.5 border-gold/10 border shadow-lg">
           <Clock className="text-gold w-6 h-6" />
-          <span className="text-base font-semibold text-white/80">זמן מוערך</span>
-          <span className="text-lg font-bold gold-text-gradient">{state.settings.slotDuration} דק'</span>
+          <span className="text-xs font-semibold text-white/70">זמן לתספורת</span>
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-white/90 font-bold">יואב <span className="text-gold">{yoavDuration} דק'</span></span>
+            <span className="text-xs text-white/90 font-bold">דביר <span className="text-sky-400">{dvirDuration} דק'</span></span>
+          </div>
         </div>
       </div>
 

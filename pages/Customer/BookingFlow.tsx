@@ -7,7 +7,7 @@ import { format, addDays, startOfToday, isSameDay, isBefore, addMinutes, isAfter
 import { he } from 'date-fns/locale';
 import { generateICS, createICSDataURI } from '../../utils/calendar';
 import { Booking, BookingStatus, ShiftType, BarberId } from '../../types';
-import { getBarberName, getBarberPrice } from '../../constants';
+import { getBarberName, getBarberPrice, getBarberSlotDuration } from '../../constants';
 
 interface AvailableSlot {
   time: string;
@@ -66,15 +66,15 @@ const BookingFlow: React.FC = () => {
       }
 
       const now = new Date();
-      const slotDuration = state.settings.slotDuration;
       let hasAvailableSlot = false;
 
       for (const block of blocks) {
         const barberId: BarberId = block.barberId || 'yoav';
+        const barberDuration = getBarberSlotDuration(state.settings, barberId);
         let current = new Date(`${dateStr}T${block.start}`);
         const end = new Date(`${dateStr}T${block.end}`);
 
-        while (isBefore(current, end)) {
+        while (!isAfter(addMinutes(current, barberDuration), end)) {
           const timeStr = format(current, 'HH:mm');
           if (!isSameDay(date, now) || isAfter(current, now)) {
             const isBooked = state.bookings.some(b => 
@@ -88,7 +88,7 @@ const BookingFlow: React.FC = () => {
               break;
             }
           }
-          current = addMinutes(current, slotDuration);
+          current = addMinutes(current, barberDuration);
         }
         if (hasAvailableSlot) break;
       }
@@ -107,18 +107,18 @@ const BookingFlow: React.FC = () => {
     
     if (blocks.length === 0) return { yoav: [], dvir: [] };
 
-    const slotDuration = state.settings.slotDuration;
     const now = new Date();
 
     blocks.forEach(block => {
       const barberId: BarberId = block.barberId || 'yoav';
+      const barberDuration = getBarberSlotDuration(state.settings, barberId);
       const barberName = block.barberName || getBarberName(barberId);
       const price = getBarberPrice(state.settings, barberId);
 
       let current = new Date(`${dateStr}T${block.start}`);
       const end = new Date(`${dateStr}T${block.end}`);
 
-      while (isBefore(current, end)) {
+      while (!isAfter(addMinutes(current, barberDuration), end)) {
         const timeStr = format(current, 'HH:mm');
         if (!isSameDay(selectedDate, now) || isAfter(current, now)) {
           const isBooked = state.bookings.some(b => 
@@ -142,7 +142,7 @@ const BookingFlow: React.FC = () => {
             }
           }
         }
-        current = addMinutes(current, slotDuration);
+        current = addMinutes(current, barberDuration);
       }
     });
 
@@ -164,6 +164,8 @@ const BookingFlow: React.FC = () => {
 
   const yoavPrice = getBarberPrice(state.settings, 'yoav');
   const dvirPrice = getBarberPrice(state.settings, 'dvir');
+  const yoavDuration = getBarberSlotDuration(state.settings, 'yoav');
+  const dvirDuration = getBarberSlotDuration(state.settings, 'dvir');
 
   const totalSlotsCount = slotsByBarber.yoav.length + slotsByBarber.dvir.length;
 
@@ -413,7 +415,7 @@ const BookingFlow: React.FC = () => {
               }`}
             >
               <span>יואב (₪{yoavPrice})</span>
-              <span className="text-[10px] opacity-75">{slotsByBarber.yoav.length} פנויים</span>
+              <span className="text-[10px] opacity-75">{slotsByBarber.yoav.length} פנויים • {yoavDuration} דק'</span>
             </button>
 
             <button
@@ -425,7 +427,7 @@ const BookingFlow: React.FC = () => {
               }`}
             >
               <span>דביר (₪{dvirPrice})</span>
-              <span className="text-[10px] opacity-75">{slotsByBarber.dvir.length} פנויים</span>
+              <span className="text-[10px] opacity-75">{slotsByBarber.dvir.length} פנויים • {dvirDuration} דק'</span>
             </button>
           </div>
 
@@ -469,7 +471,7 @@ const BookingFlow: React.FC = () => {
                         <div className="w-6 h-6 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-gold text-xs font-bold">
                           י
                         </div>
-                        <span className="font-bold text-white text-sm">יואב מלכה <span className="text-xs text-gold font-normal">(ספר ראשי)</span></span>
+                        <span className="font-bold text-white text-sm">יואב מלכה <span className="text-xs text-gold font-normal">(ספר ראשי • {yoavDuration} דק')</span></span>
                       </div>
                       <span className="text-xs font-bold text-gold bg-gold/10 px-2.5 py-0.5 rounded-full border border-gold/20">
                         ₪{yoavPrice} לתספורת
@@ -531,7 +533,7 @@ const BookingFlow: React.FC = () => {
                         <div className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400 text-xs font-bold">
                           ד
                         </div>
-                        <span className="font-bold text-white text-sm">דביר חניה <span className="text-xs text-sky-400 font-normal">(ספר משני)</span></span>
+                        <span className="font-bold text-white text-sm">דביר חניה <span className="text-xs text-sky-400 font-normal">(ספר משני • {dvirDuration} דק')</span></span>
                       </div>
                       <span className="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
                         ₪{dvirPrice} לתספורת
@@ -628,6 +630,14 @@ const BookingFlow: React.FC = () => {
             <div className="flex justify-between items-center text-sm">
               <span className="text-white/40 font-bold">שעה</span>
               <span className="font-bold text-gold text-lg">{selectedSlotInfo.time}</span>
+            </div>
+
+            {/* Duration */}
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-white/40 font-bold">משך תספורת</span>
+              <span className="font-bold text-white">
+                {getBarberSlotDuration(state.settings, selectedSlotInfo.barberId)} דקות
+              </span>
             </div>
 
             {/* Shift Type if soldier */}

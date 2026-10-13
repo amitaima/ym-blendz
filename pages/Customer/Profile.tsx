@@ -8,7 +8,7 @@ import { format, isAfter, subHours, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { BookingStatus, Booking } from '../../types';
 import { generateICS, createICSDataURI } from '../../utils/calendar';
-import { getBarberName, getBarberPrice } from '../../constants';
+import { getBarberName, getBarberPrice, getBarberSlotDuration } from '../../constants';
 
 const CustomerProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -224,7 +224,7 @@ const CustomerProfile: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-start space-x-3 space-x-reverse text-white/60">
                       <Clock size={16} />
-                      <span className="text-base">{b.timeSlot} ({state.settings.slotDuration} דק')</span>
+                      <span className="text-base">{b.timeSlot} ({getBarberSlotDuration(state.settings, b.barberId)} דק')</span>
                     </div>
                   </div>
                   <button 

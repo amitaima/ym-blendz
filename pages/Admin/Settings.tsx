@@ -4,7 +4,7 @@ import { useApp } from '../../store/AppContext';
 import { useImages } from '../../store/ImageContext';
 import GoldButton from '../../components/GoldButton';
 import { Settings as SettingsIcon, DollarSign, Clock, Save, Scissors, ImageUp, Replace, Loader2, User, Award } from 'lucide-react';
-import { getBarberPrice, getDvirCommission } from '../../constants';
+import { getBarberPrice, getDvirCommission, getBarberSlotDuration } from '../../constants';
 
 const AdminSettings: React.FC = () => {
   const { state, updateSettings } = useApp();
@@ -14,6 +14,8 @@ const AdminSettings: React.FC = () => {
     yoavPrice: getBarberPrice(state.settings, 'yoav'),
     dvirPrice: getBarberPrice(state.settings, 'dvir'),
     dvirCommission: getDvirCommission(state.settings),
+    yoavDuration: getBarberSlotDuration(state.settings, 'yoav'),
+    dvirDuration: getBarberSlotDuration(state.settings, 'dvir'),
     slotDuration: state.settings.slotDuration || 30
   });
 
@@ -22,6 +24,8 @@ const AdminSettings: React.FC = () => {
       yoavPrice: getBarberPrice(state.settings, 'yoav'),
       dvirPrice: getBarberPrice(state.settings, 'dvir'),
       dvirCommission: getDvirCommission(state.settings),
+      yoavDuration: getBarberSlotDuration(state.settings, 'yoav'),
+      dvirDuration: getBarberSlotDuration(state.settings, 'dvir'),
       slotDuration: state.settings.slotDuration || 30
     });
   }, [state.settings]);
@@ -33,21 +37,23 @@ const AdminSettings: React.FC = () => {
   const handleSave = () => {
     updateSettings({
       pricePerCut: formData.yoavPrice,
-      slotDuration: formData.slotDuration,
+      slotDuration: formData.yoavDuration,
       dvirYoavCommission: formData.dvirCommission,
       barbers: {
         yoav: {
           id: 'yoav',
           name: 'יואב מלכה',
           price: formData.yoavPrice,
-          role: 'main'
+          role: 'main',
+          slotDuration: formData.yoavDuration
         },
         dvir: {
           id: 'dvir',
           name: 'דביר חניה',
           price: formData.dvirPrice,
           role: 'secondary',
-          yoavCommission: formData.dvirCommission
+          yoavCommission: formData.dvirCommission,
+          slotDuration: formData.dvirDuration
         }
       }
     });
@@ -170,6 +176,23 @@ const AdminSettings: React.FC = () => {
                   />
                 </div>
               </div>
+              <div className="space-y-1 pt-1 border-t border-white/5">
+                <label className="text-[11px] uppercase font-bold text-white/40 tracking-wider flex items-center justify-between">
+                  <span>משך תספורת (דקות)</span>
+                  <Clock size={12} className="text-gold" />
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-xs">דק'</span>
+                  <input 
+                    type="number"
+                    min={5}
+                    step={5}
+                    value={formData.yoavDuration}
+                    onChange={e => setFormData(p => ({ ...p, yoavDuration: parseInt(e.target.value) || 30 }))}
+                    className="w-full bg-black border border-white/15 rounded-xl p-3 pl-12 pr-4 focus:border-gold outline-none transition-all font-bold text-right text-lg text-white"
+                  />
+                </div>
+              </div>
               <p className="text-[11px] text-white/40 leading-relaxed">
                 כל ההכנסה (100%) נרשמת בחשבון של יואב.
               </p>
@@ -195,6 +218,23 @@ const AdminSettings: React.FC = () => {
                     value={formData.dvirPrice}
                     onChange={e => setFormData(p => ({ ...p, dvirPrice: parseInt(e.target.value) || 0 }))}
                     className="w-full bg-black border border-white/15 rounded-xl p-3 pr-10 focus:border-sky-400 outline-none transition-all font-bold text-right text-lg text-white"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1 pt-1 border-t border-white/5">
+                <label className="text-[11px] uppercase font-bold text-white/40 tracking-wider flex items-center justify-between">
+                  <span>משך תספורת (דקות)</span>
+                  <Clock size={12} className="text-sky-400" />
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold text-xs">דק'</span>
+                  <input 
+                    type="number"
+                    min={5}
+                    step={5}
+                    value={formData.dvirDuration}
+                    onChange={e => setFormData(p => ({ ...p, dvirDuration: parseInt(e.target.value) || 35 }))}
+                    className="w-full bg-black border border-white/15 rounded-xl p-3 pl-12 pr-4 focus:border-sky-400 outline-none transition-all font-bold text-right text-lg text-white"
                   />
                 </div>
               </div>

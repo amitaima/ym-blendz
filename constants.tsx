@@ -7,13 +7,15 @@ export const BARBERS: Record<BarberId, BarberConfig> = {
     id: 'yoav',
     name: 'יואב מלכה',
     price: 50,
-    role: 'main'
+    role: 'main',
+    slotDuration: 30
   },
   dvir: {
     id: 'dvir',
     name: 'דביר חניה',
     price: 35,
-    role: 'secondary'
+    role: 'secondary',
+    slotDuration: 35
   }
 };
 
@@ -31,14 +33,16 @@ export const DEFAULT_SETTINGS = {
       id: 'yoav' as BarberId,
       name: 'יואב מלכה',
       price: 50,
-      role: 'main' as const
+      role: 'main' as const,
+      slotDuration: 30
     },
     dvir: {
       id: 'dvir' as BarberId,
       name: 'דביר חניה',
       price: 35,
       role: 'secondary' as const,
-      yoavCommission: DEFAULT_DVIR_COMMISSION
+      yoavCommission: DEFAULT_DVIR_COMMISSION,
+      slotDuration: 35
     }
   }
 };
@@ -54,6 +58,15 @@ export const getBarberPrice = (settings?: Partial<BusinessSettings>, barberId?: 
     return settings.barbers[normalizedId]!.price;
   }
   return BARBERS[normalizedId].price;
+};
+
+export const getBarberSlotDuration = (settings?: Partial<BusinessSettings>, barberId?: string | BarberId): number => {
+  const normalizedId: BarberId = barberId === 'dvir' ? 'dvir' : 'yoav';
+  if (settings?.barbers?.[normalizedId]?.slotDuration !== undefined && !isNaN(Number(settings.barbers[normalizedId]!.slotDuration))) {
+    return Number(settings.barbers[normalizedId]!.slotDuration);
+  }
+  if (normalizedId === 'dvir') return 35;
+  return settings?.slotDuration || 30;
 };
 
 export const getDvirCommission = (settings?: Partial<BusinessSettings>): number => {

@@ -22,6 +22,7 @@ export interface BarberConfig {
   price: number;
   role?: 'main' | 'secondary';
   yoavCommission?: number;
+  slotDuration?: number; // duration in minutes
 }
 
 export interface Booking {
